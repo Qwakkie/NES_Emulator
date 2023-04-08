@@ -1,24 +1,52 @@
 #include <iostream>
 #include <Windows.h>
+#include <SDL.h>
+#include <iostream>
 
 #include "FileSelector.h"
+#include "Window.h"
+#include "Renderer.h"
 
-int main()
+bool Init();
+
+int main(int argc, char* argv[])
 {
     FileSelector fileSelector{};
-    bool result = fileSelector.OpenFile();
-    switch (result)
-    {
-        if (result)
-        {
-            printf("SELECTED FILE: %s\nFILE PATH: %s\n\n", fileSelector.GetSelectedFile().c_str(), fileSelector.GetFilePath().c_str());
-            system("pause");
-        }
-        else
-        {
-            printf("ENCOUNTERED AN ERROR: (%d)\n", GetLastError());
-            system("pause");
-        }
-    }
+    //bool result = fileSelector.OpenFile();
+
+	Init();
+
+	float windowWidth = 256.f;
+	float windowHeight = 224.f;
+	Window window{ windowWidth, windowHeight };
+	Renderer renderer{ window.GetPointerHandler() };
+
+	if (Init() == false) { Shutdown(); }
+
+	// Implement the main loop here
+
+	Shutdown();
+
+	std::cin.get();
+
     return 0;
+}
+
+bool Init()
+{
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+	{
+		std::cout << "SDL initialization failed. SDL Error: " << SDL_GetError();
+	}
+	else
+	{
+		std::cout << "SDL initialization succeeded!";
+	}
+
+
+}
+
+void Shutdown()
+{
+	SDL_Quit();
 }
