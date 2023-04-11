@@ -5,7 +5,7 @@
 class Window
 {
 public:
-	Window(float width, float height, std::string title = "");
+	Window(int width, int height, std::string title = "");
 	~Window();
 	Window(const Window& other) = delete;
 	Window(Window&& other) = default;
@@ -17,7 +17,7 @@ private:
 	SDL_Window* m_pWindow;
 
 	std::string m_Title;
-	float m_Width;
-	float m_Height;
+	int m_Width;
+	int m_Height;
 };
 

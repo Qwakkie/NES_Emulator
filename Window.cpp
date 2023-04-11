@@ -1,7 +1,7 @@
 #include "Window.h"
 #include <iostream>
 
-Window::Window(float width, float height, std::string title)
+Window::Window(int width, int height, std::string title)
 	:m_Title{ title }
 	, m_Width{ width }
 	, m_Height{height}
