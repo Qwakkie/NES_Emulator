@@ -15,9 +15,10 @@ int main(int argc, char* argv[])
     FileSelector fileSelector{};
     //bool result = fileSelector.OpenFile();
 
-	int windowWidth = 256;
-	int windowHeight = 224;
-	App app{};
+	AppSettings settings{};
+	settings.WindowHeight = 224;
+	settings.WindowWidth = 256;
+	App app{settings};
 	app.Run();
     return 0;
 }

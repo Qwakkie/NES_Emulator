@@ -2,10 +2,19 @@
 #include <iostream>
 
 App::App()
-	:m_bInitialized{false}
+	:App(AppSettings{})
 {
 	Initialize();
-	m_pWindow = new Window{256, 224 };
+	m_pWindow = new Window{appSettings.WindowWidth, appSettings.WindowHeight };
+	m_pRenderer = new Renderer{ m_pWindow->GetPointerHandler() };
+}
+
+App::App(AppSettings settings)
+	: m_bInitialized{ false }
+	, appSettings{ settings }
+{
+	Initialize();
+	m_pWindow = new Window{ appSettings.WindowWidth, appSettings.WindowHeight };
 	m_pRenderer = new Renderer{ m_pWindow->GetPointerHandler() };
 }
 

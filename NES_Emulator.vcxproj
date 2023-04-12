@@ -159,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
+    <ClInclude Include="AppSettings.h" />
     <ClInclude Include="FileSelector.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Window.h" />
