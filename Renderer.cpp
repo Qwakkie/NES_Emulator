@@ -26,3 +26,15 @@ void Renderer::RenderPresent()
 {
 	SDL_RenderPresent(m_pRenderer);
 }
+
+void Renderer::DrawPixel(int x, int y)
+{
+	SDL_Rect rect;
+	rect.x = x;
+	rect.y = y;
+	rect.w = 1;
+	rect.h = 1;
+
+	SDL_SetRenderDrawColor(m_pRenderer, 1, 1, 1, 1);
+	SDL_RenderFillRect(m_pRenderer, &rect);
+}
