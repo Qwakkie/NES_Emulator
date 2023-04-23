@@ -1,6 +1,8 @@
 #pragma once
+#pragma warning (push)
+#pragma warning(disable:4244)
 #include <string>
-#include "SDL.h"
+#pragma warning (pop)
 
 class Window
 {

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <Windows.h>
 #include <SDL.h>
+#include "pch.h"
 #include <iostream>
 
 #include "FileSelector.h"
@@ -10,15 +11,13 @@
 
 void Shutdown();
 
-int main(int argc, char* argv[])
+int main()
 {
     FileSelector fileSelector{};
     //bool result = fileSelector.OpenFile();
 
-	AppSettings settings{};
-	settings.WindowHeight = 224;
-	settings.WindowWidth = 256;
-	App app{settings};
+	App::GetAppSettings() = AppSettings{224, 256};
+	App app{};
 	app.Run();
     return 0;
 }

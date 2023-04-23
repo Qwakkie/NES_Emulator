@@ -1,20 +1,17 @@
+#include "pch.h"
 #include "App.h"
 #include <iostream>
 
-App::App()
-	:App(AppSettings{})
-{
-	Initialize();
-	m_pWindow = new Window{appSettings.WindowWidth, appSettings.WindowHeight };
-	m_pRenderer = new Renderer{ m_pWindow->GetPointerHandler() };
-}
+#include "Renderer.h"
+#include "Window.h"
 
-App::App(AppSettings settings)
-	: m_bInitialized{ false }
-	, appSettings{ settings }
+AppSettings App::m_AppSettings{};
+
+App::App()
+	: m_bInitialized{ false } 
 {
 	Initialize();
-	m_pWindow = new Window{ appSettings.WindowWidth, appSettings.WindowHeight };
+	m_pWindow = new Window{m_AppSettings.WindowWidth, m_AppSettings.WindowHeight };
 	m_pRenderer = new Renderer{ m_pWindow->GetPointerHandler() };
 }
 
@@ -65,7 +62,14 @@ void App::Run()
 				break;
 			}
 		}
-
+		const int bufferSize{ m_AppSettings.WindowWidth * m_AppSettings.WindowHeight };
+		SDL_Color* pixelBuffer{ new SDL_Color[bufferSize]{255, 255, 0, 255} };
+		m_pRenderer->DrawFrame(pixelBuffer);
 		m_pRenderer->RenderPresent();
 	}
+}
+
+AppSettings& App::GetAppSettings()
+{
+	return m_AppSettings;
 }

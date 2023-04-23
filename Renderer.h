@@ -1,5 +1,4 @@
 #pragma once
-#include "SDL.h"
 
 class Renderer
 {
@@ -13,11 +12,11 @@ public:
 
 	void ClearScreen();
 	void SetClearColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a = SDL_ALPHA_OPAQUE);
+	void DrawFrame(SDL_Color* pixelArray);
 	void RenderPresent();
 private:
-	void DrawPixel(int x, int y);
-
 	SDL_Color m_ClearColor;
 	SDL_Renderer* m_pRenderer;
+	SDL_Texture* m_pRenderTexture;
 };
 

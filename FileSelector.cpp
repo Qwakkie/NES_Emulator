@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "FileSelector.h"
 #include <Windows.h>
 #include <shobjidl.h>

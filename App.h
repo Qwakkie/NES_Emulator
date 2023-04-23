@@ -1,13 +1,13 @@
 #pragma once
-#include "Renderer.h"
-#include "Window.h"
 #include "AppSettings.h"
+
+class Renderer;
+class Window;
 
 class App
 {
 public:
 	App();
-	App(AppSettings settings);
 	~App();
 	App(const App& other) = delete;
 	App(App&& other) = delete;
@@ -17,10 +17,10 @@ public:
 	void Initialize();
 	void Run();
 
-	const AppSettings GetAppsettings() { return appSettings; };
-	void SetAppSettings(AppSettings settings) { appSettings = settings; };
+	static AppSettings& GetAppSettings();
 private:
-	AppSettings appSettings;
+	static AppSettings m_AppSettings;
+	
 	Window* m_pWindow;
 	Renderer* m_pRenderer;
 	bool m_bInitialized;
