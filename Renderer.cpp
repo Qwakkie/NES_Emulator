@@ -2,7 +2,6 @@
 #include "Renderer.h"
 #include "App.h"
 #include <iostream>
-#include <string>
 
 Renderer::Renderer(SDL_Window* pWindow)
 	:m_ClearColor{}
@@ -27,7 +26,7 @@ void Renderer::SetClearColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 	m_ClearColor = { r, g, b, a };
 }
 
-void Renderer::DrawFrame(SDL_Color* pixelArray)
+void Renderer::DrawFrame(SDL_Color* pixelArray)const
 {
     SDL_Color* pixelPointer = pixelArray;
     SDL_Color* destination;
@@ -39,7 +38,10 @@ void Renderer::DrawFrame(SDL_Color* pixelArray)
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock texture: %s\n", SDL_GetError());
     }
     for (row = 0; row < App::GetAppSettings().WindowHeight; ++row) {
-        destination = (SDL_Color*)((Uint8*)pixels + (Uint8)(row) * pitch);
+#pragma warning (push)
+#pragma warning (disable:26451)
+        destination = (SDL_Color*)((Uint8*)pixels + row * pitch);
+#pragma warning(pop)
         for (col = 0; col < App::GetAppSettings().WindowWidth; ++col) {
             *destination++ = *pixelPointer++;
         }

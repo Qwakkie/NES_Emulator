@@ -1,8 +1,4 @@
 #pragma once
-#pragma warning (push)
-#pragma warning(disable:4244)
-#include <string>
-#pragma warning (pop)
 
 class Window
 {
@@ -14,7 +10,7 @@ public:
 	Window operator=(const Window& other) = delete;
 	Window operator=(Window&& other) = delete;
 
-	SDL_Window* GetPointerHandler() { return m_pWindow; };
+	SDL_Window* GetPointerHandler() const{ return m_pWindow; };
 private:
 	SDL_Window* m_pWindow;
 

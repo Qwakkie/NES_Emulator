@@ -1,7 +1,6 @@
+#include "pch.h"
 #include <iostream>
 #include <Windows.h>
-#include <SDL.h>
-#include "pch.h"
 #include <iostream>
 
 #include "FileSelector.h"
@@ -11,7 +10,10 @@
 
 void Shutdown();
 
-int main()
+#pragma warning (push)
+#pragma warning (disable: 4100)
+int main(int argc, char* argv[])
+#pragma warning (pop)
 {
     FileSelector fileSelector{};
     //bool result = fileSelector.OpenFile();
