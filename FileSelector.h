@@ -6,8 +6,8 @@ class FileSelector
 public:
 	bool OpenFile();
 
-	std::string GetSelectedFile() { return m_SelectedFile; };
-	std::string GetFilePath() { return m_FilePath; };
+	std::string GetSelectedFile() const { return m_SelectedFile; };
+	std::string GetFilePath() const { return m_FilePath; };
 
 	FileSelector() = default;
 	~FileSelector() = default;
