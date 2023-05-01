@@ -63,7 +63,8 @@ void App::Run()
 			}
 		}
 		const int bufferSize{ m_AppSettings.WindowWidth * m_AppSettings.WindowHeight };
-		SDL_Color* pixelBuffer{ new SDL_Color[bufferSize]{255, 255, 0, 255} };
+		SDL_Color* pixelBuffer{ new SDL_Color[bufferSize]{} };
+
 		m_pRenderer->DrawFrame(pixelBuffer);
 		m_pRenderer->RenderPresent();
 	}
