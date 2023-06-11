@@ -5,7 +5,7 @@
 
 
 
-bool FileSelector::OpenFile()
+bool FileSelector::SelectFile()
 {
     //  CREATE FILE OBJECT INSTANCE
     HRESULT f_SysHr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);

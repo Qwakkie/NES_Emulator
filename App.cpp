@@ -5,6 +5,9 @@
 #include "Renderer.h"
 #include "Window.h"
 
+#include "FileSelector.h"
+#include "FileReader.h"
+
 AppSettings App::m_AppSettings{};
 
 App::App()

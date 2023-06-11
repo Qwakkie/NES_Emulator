@@ -4,7 +4,7 @@
 class FileSelector
 {
 public:
-	bool OpenFile();
+	bool SelectFile();
 
 	std::string GetSelectedFile() const { return m_SelectedFile; };
 	std::string GetFilePath() const { return m_FilePath; };

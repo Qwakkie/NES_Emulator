@@ -1,5 +1,6 @@
 #pragma once
 #include "AppSettings.h"
+#include "Emulator.h"
 
 class Renderer;
 class Window;
@@ -21,6 +22,7 @@ public:
 private:
 	static AppSettings m_AppSettings;
 	
+	Emulator m_Emulator;
 	Window* m_pWindow;
 	Renderer* m_pRenderer;
 	bool m_bInitialized;

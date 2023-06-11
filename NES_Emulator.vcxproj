@@ -156,6 +156,7 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="CentralProcessingUnit.cpp" />
     <ClCompile Include="Emulator.cpp" />
+    <ClCompile Include="FileReader.cpp" />
     <ClCompile Include="FileSelector.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="AppSettings.h" />
     <ClInclude Include="CentralProcessingUnit.h" />
     <ClInclude Include="Emulator.h" />
+    <ClInclude Include="FileReader.h" />
     <ClInclude Include="FileSelector.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PixelProcessingUnit.h" />

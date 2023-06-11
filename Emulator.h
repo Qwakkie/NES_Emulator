@@ -5,7 +5,7 @@
 class Emulator
 {
 public:
-	void EmulateCycle();
+	void EmulateCycles(int amount);
 private:
 	CentralProcessingUnit m_CPU;
 	PixelProcessingUnit m_PPU;
