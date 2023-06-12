@@ -33,6 +33,13 @@ void Emulator::ProcessHeader(const char* header)
 	//	|||||+-- - 1 : 512 - byte trainer at $7000 - $71FF(stored before PRG data)
 	//	||||+---- 1 : Ignore mirroring control or above mirroring bit; instead provide four - screen VRAM
 	//	++++---- - Lower nybble of mapper number
+	char flagFilter{ 1 };
+	bool mirroring{ flags6 & flagFilter };
+	flagFilter <<= 1 ;
+	bool cartridgeBattery{ flags6 & flagFilter };
+	flagFilter <<= 1 ;
+	bool hasTrainer{ flags6 & 4 };
+	flagFilter <<= 1 ;
 
 	char flags7{ int(header[headerPointer++]) };
 	//  76543210

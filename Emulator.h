@@ -26,6 +26,8 @@ private:
 	//$4000-$4017: NES APU and I/O registers								|
 	//$4018-$401F: APU and I/O functionality that is normally disabled		|
 	//$4020-$FFFF: Cartridge space: PRG ROM, PRG RAM and mapper registers	|
+	//$6000–$7FFF: Battery-backed save or work RAM							|
+	//$8000–$FFFF: ROM and mapper registers									|
 	//----------------------------------------------------------------------+
 	static const int m_MemorySize{ 0xffff };
 	//REGISTERS
