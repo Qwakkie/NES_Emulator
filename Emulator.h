@@ -6,7 +6,10 @@ class Emulator
 {
 public:
 	void EmulateCycles(int amount);
+	void LoadRom(const char* data, int dataSize);
 private:
+	void ProcessHeader(const char* header);
+
 	CentralProcessingUnit m_CPU;
 	PixelProcessingUnit m_PPU;
 	unsigned int m_CycleCount;

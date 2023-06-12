@@ -12,10 +12,18 @@ AppSettings App::m_AppSettings{};
 
 App::App()
 	: m_bInitialized{ false } 
+	, m_Emulator{}
 {
 	Initialize();
 	m_pWindow = new Window{m_AppSettings.WindowWidth, m_AppSettings.WindowHeight };
 	m_pRenderer = new Renderer{ m_pWindow->GetPointerHandler() };
+	FileSelector selector{};
+	selector.SelectFile();
+	FileReader reader{ selector.GetFilePath() };
+	int fileSize{};
+	char* fileData{ reader.ReadFile(fileSize) };
+	m_Emulator.LoadRom(fileData, fileSize);
+	delete[] fileData;
 }
 
 App::~App()
