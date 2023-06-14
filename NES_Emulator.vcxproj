@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="Bus.cpp" />
     <ClCompile Include="CentralProcessingUnit.cpp" />
     <ClCompile Include="Emulator.cpp" />
     <ClCompile Include="FileReader.cpp" />
@@ -168,6 +169,7 @@
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="AppSettings.h" />
+    <ClInclude Include="Bus.h" />
     <ClInclude Include="CentralProcessingUnit.h" />
     <ClInclude Include="Emulator.h" />
     <ClInclude Include="FileReader.h" />

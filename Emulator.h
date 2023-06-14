@@ -30,12 +30,6 @@ private:
 	//$8000–$FFFF: ROM and mapper registers									|
 	//----------------------------------------------------------------------+
 	static const int m_MemorySize{ 0xffff };
-	//REGISTERS
-	unsigned char m_Accumulator;
-	unsigned char m_IndexX;
-	unsigned char m_IndexY;
-	unsigned char m_StackPointer;
-	unsigned char m_StatusRegister;
 
 	unsigned short m_ProgramCounter;
 };
