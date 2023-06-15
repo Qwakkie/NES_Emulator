@@ -80,7 +80,7 @@ private:
 	uint16_t m_AddressAbsolute{0x0000};
 	uint16_t m_AddressRelative{ 0x00 };
 	uint8_t opcode{ 0x00 };
-	uint8_t cycles{ 0 };
+	uint8_t m_Cycles{ 0 };
 
 	void Write(uint16_t address, uint8_t data);
 	uint8_t Read(uint16_t address, bool bReadOnly = false);
