@@ -155,6 +155,7 @@
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Bus.cpp" />
+    <ClCompile Include="Cartridge.cpp" />
     <ClCompile Include="CentralProcessingUnit.cpp" />
     <ClCompile Include="Emulator.cpp" />
     <ClCompile Include="FileReader.cpp" />
@@ -162,7 +163,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="PixelProcessingUnit.cpp" />
-    <ClCompile Include="ProcessingUnit.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -170,13 +170,13 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="AppSettings.h" />
     <ClInclude Include="Bus.h" />
+    <ClInclude Include="Cartridge.h" />
     <ClInclude Include="CentralProcessingUnit.h" />
     <ClInclude Include="Emulator.h" />
     <ClInclude Include="FileReader.h" />
     <ClInclude Include="FileSelector.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PixelProcessingUnit.h" />
-    <ClInclude Include="ProcessingUnit.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

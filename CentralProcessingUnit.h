@@ -1,10 +1,9 @@
 #pragma once
-#include "ProcessingUnit.h"
 #include <vector>
 
 class Bus;
 
-class CentralProcessingUnit : public ProcessingUnit
+class CentralProcessingUnit
 {
 public:
 	CentralProcessingUnit();
@@ -66,11 +65,13 @@ private:
 	uint8_t XXX(); //Illegal opcodes
 #pragma endregion
 
+public:
 	void Clock();
 	void Reset();
 	void Irq(); //Interrupt request
 	void Nmi(); //Non-maskable interrupt request
 
+private:
 	uint8_t GetFlag(Flags f);
 	void    SetFlag(Flags f, bool v);
 

@@ -28,12 +28,12 @@ CentralProcessingUnit::CentralProcessingUnit()
 
 void CentralProcessingUnit::Write(uint16_t address, uint8_t data)
 {
-	m_pBus->Write(address, data);
+	m_pBus->CpuWrite(address, data);
 }
 
 uint8_t CentralProcessingUnit::Read(uint16_t address, bool bReadOnly)
 {
-	return m_pBus->Read(address, bReadOnly);
+	return m_pBus->CpuRead(address, bReadOnly);
 }
 
 void CentralProcessingUnit::Clock()
@@ -93,6 +93,24 @@ void CentralProcessingUnit::Irq()
 
 		m_Cycles = 7;
 	}
+}
+
+void CentralProcessingUnit::Nmi()
+{
+	Write(m_StackAddress + m_StackPointer--, (m_ProgramCounter >> 8) & 0x00FF);
+	Write(m_StackAddress + m_StackPointer--, m_ProgramCounter & 0x00FF);
+
+	SetFlag(B, 0);
+	SetFlag(U, 1);
+	SetFlag(I, 1);
+	Write(m_StackAddress + m_StackPointer--, m_StatusRegister);
+
+	m_AddressAbsolute = 0xFFFA;
+	uint16_t lowByte = Read(m_AddressAbsolute + 0);
+	uint16_t highByte = Read(m_AddressAbsolute + 1);
+	m_ProgramCounter = (highByte << 8) | lowByte;
+
+	m_Cycles = 8;
 }
 
 #pragma region addressingModes
