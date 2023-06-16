@@ -47,6 +47,20 @@ void App::Run()
 
 	while (running)
 	{
+		m_LastFrameTime = std::chrono::system_clock::now();
+		if (m_FrameTime > 0.0f)
+		{
+			m_FrameTime -= m_ElapsedTime;
+		}
+		else
+		{
+			m_FrameTime += (1.0f / 60.f) - m_ElapsedTime;
+			do 
+			{
+				m_Nes.Clock();
+			} while (!m_Nes.m_Ppu.m_FrameComplete);
+			m_Nes.m_Ppu.m_FrameComplete = false;
+		}
 		m_pRenderer->ClearScreen();
 
 		if (SDL_PollEvent(&event))
@@ -67,11 +81,11 @@ void App::Run()
 				break;
 			}
 		}
-		const int bufferSize{ m_AppSettings.WindowWidth * m_AppSettings.WindowHeight };
-		SDL_Color* pixelBuffer{ new SDL_Color[bufferSize]{} };
-
-		m_pRenderer->DrawFrame(pixelBuffer);
+		m_Nes.Clock();
+		m_pRenderer->DrawFrame(m_Nes.m_Ppu.GetScreen().data());
 		m_pRenderer->RenderPresent();
+		std::chrono::duration<double> duration{ std::chrono::system_clock::now() - m_LastFrameTime };
+		m_ElapsedTime = duration.count();
 	}
 }
 

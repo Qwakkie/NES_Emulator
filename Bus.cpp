@@ -51,6 +51,12 @@ void Bus::Reset()
 
 void Bus::Clock()
 {
+	m_Ppu.Clock();
+	if (m_SystemClockCounter % 3 == 0)
+	{
+		m_Cpu.Clock();
+	}
+	++m_SystemClockCounter;
 }
 
 Bus::Bus()

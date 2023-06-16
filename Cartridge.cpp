@@ -20,8 +20,10 @@ Cartridge::Cartridge()
 	}header;
 
 	FileSelector selector{};
+	selector.SelectFile();
 
 	std::ifstream input;
+	input.open(selector.GetFilePath(), std::ifstream::binary);
 	if (input.is_open())
 	{
 		input.read((char*)&header, sizeof(Header));
@@ -45,8 +47,8 @@ Cartridge::Cartridge()
 			m_ProgramMemory.resize((uint64_t)m_ProgramBanks * 16384);
 			input.read((char*)m_ProgramMemory.data(), m_ProgramMemory.size());
 
-			m_ProgramBanks = header.programRamSize;
-			m_ProgramMemory.resize((uint64_t)m_ProgramBanks * 8192);
+			m_CharacterBanks = header.characterRomSize;
+			m_CharacterMemory.resize((uint64_t)m_CharacterBanks * 8192);
 			input.read((char*)m_CharacterMemory.data(), m_CharacterMemory.size());
 		}
 		else if (fileType == 2)

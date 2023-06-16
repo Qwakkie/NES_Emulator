@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include "AppSettings.h"
 #include "Bus.h"
 
@@ -26,6 +27,9 @@ private:
 	Bus m_Nes;
 	Window* m_pWindow;
 	Renderer* m_pRenderer;
+	float m_FrameTime;
+	float m_ElapsedTime;
+	std::chrono::system_clock::time_point m_LastFrameTime;
 	bool m_bInitialized;
 };
 

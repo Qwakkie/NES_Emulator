@@ -23,6 +23,8 @@ public:
 
 	std::vector<SDL_Color>& GetScreen();
 
+	bool m_FrameComplete{ false };
+
 private:
 	std::shared_ptr<Cartridge> m_pCartridge;
 
@@ -30,12 +32,14 @@ private:
 	uint8_t m_PaletteTable[32]{};
 
 	SDL_Color m_Palette[0x40]{};
-	static const int m_ScreenSize{ 256 * 240 };
+	
+	const int m_ScreenWidth{ 256 };
+	const int m_ScreenHeight{ 240 };
+	const int m_ScreenSize{ m_ScreenWidth * m_ScreenHeight };
 	std::vector<SDL_Color> m_Screen;
 
 	uint16_t m_Scanline{};
 	uint16_t m_Cycle{};
 
-	bool m_FrameComplete{ false };
 };
 
