@@ -6,24 +6,19 @@
 #include "Window.h"
 
 #include "FileSelector.h"
-#include "FileReader.h"
 
 AppSettings App::m_AppSettings{};
 
 App::App()
 	: m_bInitialized{ false } 
-	, m_Emulator{}
+	, m_Nes{}
 {
 	Initialize();
 	m_pWindow = new Window{m_AppSettings.WindowWidth, m_AppSettings.WindowHeight };
 	m_pRenderer = new Renderer{ m_pWindow->GetPointerHandler() };
-	FileSelector selector{};
-	selector.SelectFile();
-	FileReader reader{ selector.GetFilePath() };
-	int fileSize{};
-	char* fileData{ reader.ReadFile(fileSize) };
-	m_Emulator.LoadRom(fileData, fileSize);
-	delete[] fileData;
+	m_pCartridge = std::make_shared<Cartridge>();
+	m_Nes.InsertCartride(m_pCartridge);
+	m_Nes.Reset();
 }
 
 App::~App()
@@ -52,7 +47,6 @@ void App::Run()
 
 	while (running)
 	{
-		// Implement the sequence of tasks here.
 		m_pRenderer->ClearScreen();
 
 		if (SDL_PollEvent(&event))

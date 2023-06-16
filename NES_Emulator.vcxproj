@@ -157,10 +157,10 @@
     <ClCompile Include="Bus.cpp" />
     <ClCompile Include="Cartridge.cpp" />
     <ClCompile Include="CentralProcessingUnit.cpp" />
-    <ClCompile Include="Emulator.cpp" />
-    <ClCompile Include="FileReader.cpp" />
     <ClCompile Include="FileSelector.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mapper.cpp" />
+    <ClCompile Include="Mapper_000.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="PixelProcessingUnit.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -172,9 +172,9 @@
     <ClInclude Include="Bus.h" />
     <ClInclude Include="Cartridge.h" />
     <ClInclude Include="CentralProcessingUnit.h" />
-    <ClInclude Include="Emulator.h" />
-    <ClInclude Include="FileReader.h" />
     <ClInclude Include="FileSelector.h" />
+    <ClInclude Include="Mapper.h" />
+    <ClInclude Include="Mapper_000.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PixelProcessingUnit.h" />
     <ClInclude Include="Renderer.h" />

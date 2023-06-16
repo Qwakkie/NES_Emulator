@@ -1,6 +1,6 @@
 #pragma once
 #include "AppSettings.h"
-#include "Emulator.h"
+#include "Bus.h"
 
 class Renderer;
 class Window;
@@ -22,7 +22,8 @@ public:
 private:
 	static AppSettings m_AppSettings;
 	
-	Emulator m_Emulator;
+	std::shared_ptr<Cartridge> m_pCartridge;
+	Bus m_Nes;
 	Window* m_pWindow;
 	Renderer* m_pRenderer;
 	bool m_bInitialized;

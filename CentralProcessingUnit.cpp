@@ -2,6 +2,9 @@
 #include "CentralProcessingUnit.h"
 #include "Bus.h"
 
+#pragma warning (push)
+#pragma warning(disable: 26812)
+
 CentralProcessingUnit::CentralProcessingUnit()
 {
 	using c = CentralProcessingUnit;
@@ -203,7 +206,7 @@ uint8_t CentralProcessingUnit::IND() //Indirect
 	uint16_t pointerLow{ Read(m_ProgramCounter++) };
 	uint16_t pointerHigh{ Read(m_ProgramCounter++) };
 
-	uint16_t pointer{ (pointerHigh << 8) | pointerLow };
+	uint16_t pointer{ (uint16_t)((pointerHigh << 8) | pointerLow) };
 
 	if (pointerLow == 0x00FF) //Page boundary hardware bug
 	{
@@ -265,7 +268,7 @@ void CentralProcessingUnit::SetFlag(Flags f, bool v)
 #pragma region instructions
 uint8_t CentralProcessingUnit::Fetch()
 {
-	if (!(m_Lookup[opcode].addressMode == &IMP))
+	if (!(m_Lookup[opcode].addressMode == &CentralProcessingUnit::IMP))
 	{
 		m_Fetched = Read(m_AddressAbsolute);
 	}
@@ -275,7 +278,7 @@ uint8_t CentralProcessingUnit::Fetch()
 uint8_t CentralProcessingUnit::ADC() //Addition
 {
 	Fetch();
-	uint16_t temp{ (uint16_t)m_Accumulator + (uint16_t)m_Fetched + (uint16_t)GetFlag(C) };
+	uint16_t temp{ (uint16_t)((uint16_t)m_Accumulator + (uint16_t)m_Fetched + (uint16_t)GetFlag(C)) };
 	SetFlag(C, temp > 255);
 	SetFlag(Z, (temp & 0x00FF) == 0);
 	SetFlag(N, temp & 0x80);
@@ -300,7 +303,7 @@ uint8_t CentralProcessingUnit::ASL() //Arithmetic Shift Left one bit
 	SetFlag(C, (temp & 0xFF00) > 0);
 	SetFlag(Z, (temp & 0xFF00) == 0x00);
 	SetFlag(N, temp & 0x80);
-	if (m_Lookup[opcode].addressMode == &IMP)
+	if (m_Lookup[opcode].addressMode == &CentralProcessingUnit::IMP)
 	{
 		m_Accumulator = temp & 0x00FF;
 	}
@@ -498,7 +501,7 @@ uint8_t CentralProcessingUnit::CLV() //Clear V flag
 uint8_t CentralProcessingUnit::CMP() //Compare memory and accumulator
 {
 	Fetch();
-	uint16_t temp{ (uint16_t)m_Accumulator - (uint16_t)m_Fetched };
+	uint16_t temp{ (uint16_t)((uint16_t)m_Accumulator - (uint16_t)m_Fetched) };
 	SetFlag(N, temp & 0x0080);
 	SetFlag(Z, !(temp & 0x00FF));
 	SetFlag(C, m_Accumulator >= m_Fetched);
@@ -508,7 +511,7 @@ uint8_t CentralProcessingUnit::CMP() //Compare memory and accumulator
 uint8_t CentralProcessingUnit::CPX() //Compare memory and X
 {
 	Fetch();
-	uint16_t temp{ (uint16_t)m_X - (uint16_t)m_Fetched };
+	uint16_t temp{ (uint16_t)((uint16_t)m_X - (uint16_t)m_Fetched) };
 	SetFlag(N, temp & 0x0080);
 	SetFlag(Z, !(temp & 0x00FF));
 	SetFlag(C, m_X >= m_Fetched);
@@ -518,7 +521,7 @@ uint8_t CentralProcessingUnit::CPX() //Compare memory and X
 uint8_t CentralProcessingUnit::CPY() //Compare memory and Y
 {
 	Fetch();
-	uint16_t temp{ (uint16_t)m_Y - (uint16_t)m_Fetched };
+	uint16_t temp{ (uint16_t)((uint16_t)m_Y - (uint16_t)m_Fetched) };
 	SetFlag(N, temp & 0x0080);
 	SetFlag(Z, !(temp & 0x00FF));
 	SetFlag(C, m_Y >= m_Fetched);
@@ -528,7 +531,7 @@ uint8_t CentralProcessingUnit::CPY() //Compare memory and Y
 uint8_t CentralProcessingUnit::DEC() //Decrement memory at location
 {
 	Fetch();
-	uint16_t temp{ m_Fetched - 1 };
+	uint16_t temp{ (uint16_t)(m_Fetched - 1) };
 	Write(m_AddressAbsolute, temp & 0x00FF);
 	SetFlag(N, temp & 0x0080);
 	SetFlag(Z, !(temp & 0x00FF));
@@ -563,7 +566,7 @@ uint8_t CentralProcessingUnit::EOR() //XOR Memory with accumulator
 uint8_t CentralProcessingUnit::INC() //Increment memory
 {
 	Fetch();
-	uint16_t temp{ m_Fetched + 1 };
+	uint16_t temp{ (uint16_t)(m_Fetched + 1) };
 	Write(m_AddressAbsolute, temp & 0x00FF);
 	SetFlag(N, temp & 0x0080);
 	SetFlag(Z, !(temp & 0x00FF));
@@ -633,11 +636,11 @@ uint8_t CentralProcessingUnit::LSR() //Logical shift right
 {
 	Fetch();
 	SetFlag(C, m_Fetched & 0x01);
-	uint16_t temp{ m_Fetched >> 1 };
+	uint16_t temp{ (uint16_t)(m_Fetched >> 1) };
 	SetFlag(N, temp & 0x0080);
 	SetFlag(Z, !(temp & 0x00FF));
 
-	if (m_Lookup[opcode].addressMode == &IMP)
+	if (m_Lookup[opcode].addressMode == &CentralProcessingUnit::IMP)
 		m_Accumulator = temp & 0x00FF;
 	else
 		Write(m_AddressAbsolute, temp & 0x00FF);
@@ -647,12 +650,12 @@ uint8_t CentralProcessingUnit::LSR() //Logical shift right
 uint8_t CentralProcessingUnit::ROR() //Rotate right one bit
 {
 	Fetch();
-	uint16_t temp{(uint16_t)(GetFlag(C) << 7 ) | m_Fetched >> 1 };
+	uint16_t temp{(uint16_t)((uint16_t)(GetFlag(C) << 7 ) | m_Fetched >> 1) };
 	SetFlag(C, m_Fetched & 0x01);
 	SetFlag(Z, !(temp & 0x00FF));
 	SetFlag(N, temp & 0x0080);
 
-	if (m_Lookup[opcode].addressMode == &IMP)
+	if (m_Lookup[opcode].addressMode == &CentralProcessingUnit::IMP)
 		m_Accumulator = temp & 0x00FF;
 	else
 		Write(m_AddressAbsolute, temp & 0x00FF);
@@ -682,9 +685,9 @@ uint8_t CentralProcessingUnit::SBC() //Subtract
 {
 	Fetch();
 
-	uint16_t value{ ((uint16_t)m_Fetched ^ 0x00FF) };
+	uint16_t value{ (uint16_t)((uint16_t)m_Fetched ^ 0x00FF) };
 
-	uint16_t temp{ (uint16_t)m_Accumulator + value + (uint16_t)GetFlag(C) };
+	uint16_t temp{ (uint16_t)((uint16_t)m_Accumulator + value + (uint16_t)GetFlag(C)) };
 	SetFlag(C, temp > 255);
 	SetFlag(Z, (temp & 0x00FF) == 0);
 	SetFlag(N, temp & 0x80);
@@ -834,15 +837,16 @@ uint8_t CentralProcessingUnit::PLP() //Pull Status from stack
 uint8_t CentralProcessingUnit::ROL() //Rotate left
 {
 	Fetch();
-	uint16_t temp{ (uint16_t)(m_Fetched << 1) | GetFlag(C) };
+	uint16_t temp{ (uint16_t)((uint16_t)(m_Fetched << 1) | (uint16_t)GetFlag(C)) };
 	SetFlag(C, m_Fetched & 0x80);
 	SetFlag(Z, !(temp & 0x00FF));
 	SetFlag(N, temp & 0x0080);
 
-	if (m_Lookup[opcode].addressMode == &IMP)
+	if (m_Lookup[opcode].addressMode == &CentralProcessingUnit::IMP)
 		m_Accumulator = temp & 0x00FF;
 	else
 		Write(m_AddressAbsolute, temp & 0x00FF);
 	return 0;
 }
 #pragma endregion
+#pragma warning(pop)

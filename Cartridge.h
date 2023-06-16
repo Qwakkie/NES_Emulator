@@ -1,15 +1,30 @@
 #pragma once
+#include <vector>
+#include <memory>
+
+class Mapper;
+
 class Cartridge
 {
 public:
 	Cartridge();
 	~Cartridge() = default;
 
-	uint8_t CpuRead(uint16_t address, bool bReadOnly = false);
-	void CpuWrite(uint16_t address, uint8_t data);
+	bool CpuRead(uint16_t address, uint8_t& data);
+	bool CpuWrite(uint16_t address, uint8_t data);
 
 	//Communication with Ppu Bus
-	uint8_t PpuRead(uint16_t address, bool bReadOnly = false);
-	void PpuWrite(uint16_t address, uint8_t data);
+	bool PpuRead(uint16_t address, uint8_t& data);
+	bool PpuWrite(uint16_t address, uint8_t data);
+
+private:
+	std::vector<uint8_t> m_ProgramMemory;
+	std::vector<uint8_t> m_CharacterMemory;
+
+	std::shared_ptr<Mapper> m_pMapper;
+
+	uint8_t m_MapperId{};
+	uint8_t m_ProgramBanks{};
+	uint8_t m_CharacterBanks{};
 };
 

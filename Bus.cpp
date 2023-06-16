@@ -3,7 +3,11 @@
 
 void Bus::CpuWrite(uint16_t address, uint8_t data)
 {
-	if (address >= 0x0000 && address <= 0x1FFF)
+	if (m_pCartridge->CpuWrite(address, data))
+	{
+
+	}
+	else if (address >= 0x0000 && address <= 0x1FFF)
 	{
 		m_CpuRam[address & 0x07FF] = data;
 	}
@@ -15,8 +19,13 @@ void Bus::CpuWrite(uint16_t address, uint8_t data)
 
 uint8_t Bus::CpuRead(uint16_t address, bool bReadOnly)
 {
+	(bReadOnly);
 	uint8_t data{ 0x00 };
-	if (address >= 0x0000 && address <= 0x1FFF)
+	if (m_pCartridge->CpuWrite(address, data))
+	{
+
+	}
+	else if (address >= 0x0000 && address <= 0x1FFF)
 	{
 		data = m_CpuRam[address & 0x07FF];
 	}
@@ -26,10 +35,6 @@ uint8_t Bus::CpuRead(uint16_t address, bool bReadOnly)
 	}
 
 	return data;
-}
-
-void Bus::InsertCartride(const Cartridge* cartridge)
-{
 }
 
 void Bus::InsertCartride(const std::shared_ptr<Cartridge>& pCartridge)
@@ -49,6 +54,7 @@ void Bus::Clock()
 }
 
 Bus::Bus()
+	:m_CpuRam{}
 {
 	//Clear RAM contents
 	for (auto& i : m_CpuRam) i = 0x00;

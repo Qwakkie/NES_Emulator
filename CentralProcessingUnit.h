@@ -11,6 +11,8 @@ public:
 
 	void ConnectBus(Bus* bus) { m_pBus = bus; };
 
+#pragma warning (push)
+#pragma warning(disable: 26812)
 	enum Flags
 	{
 		C = (1<<0),	//Carry bit
@@ -22,6 +24,7 @@ public:
 		V = (1<<6),	//Overflow
 		N = (1<<7),	//Negative
 	};
+#pragma warning(pop)
 
 	//REGISTERS
 	uint8_t m_Accumulator{ 0x00 };
