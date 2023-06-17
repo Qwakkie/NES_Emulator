@@ -9,6 +9,12 @@ PixelProcessingUnit::PixelProcessingUnit()
 {
 	m_Screen.resize(m_ScreenSize);
 
+	m_ColorPatternTables.resize(2);
+	for (std::vector<SDL_Color> v : m_ColorPatternTables)
+	{
+		v.resize(128*128);
+	}
+
 #pragma region palette
 	m_Palette[0x00] = SDL_Color{ 84, 84, 84 };
 	m_Palette[0x01] = SDL_Color{ 0, 30, 116 };
@@ -110,6 +116,7 @@ uint8_t PixelProcessingUnit::CpuRead(uint16_t address, bool bReadOnly)
 
 void PixelProcessingUnit::CpuWrite(uint16_t address, uint8_t data)
 {
+	(data);
 	switch (address)
 	{
 	case 0x0000: //Control
@@ -136,9 +143,30 @@ uint8_t PixelProcessingUnit::PpuRead(uint16_t address, bool bReadOnly)
 	(bReadOnly);
 	uint8_t data{ 0x00 };
 	address &= 0x3FFF;
-	if (m_pCartridge->CpuWrite(address, data))
+	if (m_pCartridge->PpuRead(address, data))
 	{
 
+	}
+	else if (address >= 0x000 && address <= 0x1FFF)
+	{
+		data = m_PatternTable[(address & 0x1000) >> 12][address & 0x0FFF];
+	}
+	else if (address >= 0x2000 && address <= 0x3EFF)
+	{
+
+	}
+	else if (address >= 0x3F00 && address <= 0x3FFF)
+	{
+		address &= 0x001F;
+		switch (address)
+		{
+		case 0x0010:
+		case 0x0014:
+		case 0x0018:
+		case 0x001C:
+			address &= 0x000F;
+		}
+		data = m_PaletteTable[address];
 	}
 
 	return data;
@@ -148,9 +176,30 @@ void PixelProcessingUnit::PpuWrite(uint16_t address, uint8_t data)
 {
 	address &= 0x3FFF;
 
-	if (m_pCartridge->CpuWrite(address, data))
+	if (m_pCartridge->PpuWrite(address, data))
 	{
 
+	}
+	else if (address >= 0x000 && address <= 0x1FFF)
+	{
+		m_PatternTable[(address & 0x1000) >> 12][address & 0x0FFF] = data;
+	}
+	else if (address >= 0x2000 && address <= 0x3EFF)
+	{
+
+	}
+	else if (address >= 0x3F00 && address <= 0x3FFF)
+	{
+		address &= 0x001F;
+		switch (address)
+		{
+		case 0x0010:
+		case 0x0014:
+		case 0x0018:
+		case 0x001C:
+			address &= 0x000F;
+		}
+		m_PaletteTable[address] = data;
 	}
 }
 
@@ -179,4 +228,37 @@ void PixelProcessingUnit::Clock()
 std::vector<SDL_Color>& PixelProcessingUnit::GetScreen()
 {
 	return m_Screen;
+}
+
+//std::vector<SDL_Color>& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t palette)
+//{
+//	for (uint16_t tileY{}; tileY < 16; ++tileY)
+//	{
+//		for (uint16_t tileX{}; tileX < 16; ++tileX)
+//		{
+//			uint16_t offset{ static_cast<uint16_t>(tileY * 256 + tileX * 16) };
+//			for (uint16_t row{}; row < 8; ++row)
+//			{
+//				uint8_t tileLowerBit{ PpuRead(i * 0x1000 + offset + row) };
+//				uint8_t tileHigherBit{ PpuRead(i * 0x1000 + offset + row + 8) };
+//
+//				for (uint16_t column{}; column < 8; ++column)
+//				{
+//					uint8_t pixel = { static_cast<uint8_t>((tileLowerBit & 0x01) + (tileHigherBit & 0x01)) };
+//					tileLowerBit >>= 1;
+//					tileHigherBit >>= 1;
+//					SDL_Color colour = GetColourFromPaletteRam(palette, pixel);
+//					int tableX{ tileX * 8 + (7 - column) };
+//					int tableY{ tileY * 8 + row };
+//					m_ColorPatternTables[i][tableX + tableY * 16] = colour;
+//				}
+//			}
+//		}
+//	}
+//	return m_ColorPatternTables;
+//}
+
+SDL_Color PixelProcessingUnit::GetColourFromPaletteRam(uint8_t palette, uint8_t pixel)
+{
+	return m_Palette[PpuRead(0x3F00 + (palette << 2) + pixel)];
 }
