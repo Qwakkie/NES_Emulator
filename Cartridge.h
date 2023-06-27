@@ -10,6 +10,14 @@ public:
 	Cartridge();
 	~Cartridge() = default;
 
+	enum MIRROR
+	{
+		HORIZONTAL,
+		VERTICAL,
+		ONESCREEN_LO,
+		ONESCREEN_HI,
+	} mirror = HORIZONTAL;
+
 	bool CpuRead(uint16_t address, uint8_t& data);
 	bool CpuWrite(uint16_t address, uint8_t data);
 

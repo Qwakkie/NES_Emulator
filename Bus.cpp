@@ -56,6 +56,13 @@ void Bus::Clock()
 	{
 		m_Cpu.Clock();
 	}
+
+	if (m_Ppu.m_Nmi)
+	{
+		m_Ppu.m_Nmi = false;
+		m_Cpu.Nmi();
+	}
+
 	++m_SystemClockCounter;
 }
 

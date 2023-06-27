@@ -34,6 +34,7 @@ Cartridge::Cartridge()
 		}
 
 		m_MapperId = (header.mapper2 & 0xF0) | (header.mapper1 >> 4);
+		mirror = (header.mapper1 & 0x01) ? VERTICAL : HORIZONTAL;
 
 		uint8_t fileType = 1;
 

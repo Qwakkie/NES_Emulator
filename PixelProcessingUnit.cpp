@@ -9,11 +9,15 @@ PixelProcessingUnit::PixelProcessingUnit()
 {
 	m_Screen.resize(m_ScreenSize);
 
-	m_ColorPatternTables.resize(2);
-	for (std::vector<SDL_Color> v : m_ColorPatternTables)
+	m_ColorPatternTables.push_back(std::vector<SDL_Color>{});
+	m_ColorPatternTables.push_back(std::vector<SDL_Color>{});
+	for (std::vector<SDL_Color>& v : m_ColorPatternTables)
 	{
 		v.resize(128*128);
 	}
+
+	m_Nametable1.resize(256 * 240);
+	m_Nametable2.resize(256 * 240);
 
 #pragma region palette
 	m_Palette[0x00] = SDL_Color{ 84, 84, 84 };
@@ -98,6 +102,9 @@ uint8_t PixelProcessingUnit::CpuRead(uint16_t address, bool bReadOnly)
 	case 0x0001: //Mask
 		break;
 	case 0x0002: //Status
+		data = (status.reg & 0xE0) | (ppuDataBuffer & 0x1F0);
+		status.verticalBlank = 0;
+		addressLatch = 0;
 		break;
 	case 0x0003: //OAM Address
 		break;
@@ -108,6 +115,13 @@ uint8_t PixelProcessingUnit::CpuRead(uint16_t address, bool bReadOnly)
 	case 0x0006: //PPU Address
 		break;
 	case 0x0007: //PPU Data
+		data = ppuDataBuffer;
+		ppuDataBuffer = PpuRead(vRamAddress.reg);
+		if (vRamAddress.reg > 0x3F00)
+		{
+			data = ppuDataBuffer;
+		}
+		vRamAddress.reg += (control.incrementMode ? 32 : 1);
 		break;
 	}
 
@@ -120,8 +134,12 @@ void PixelProcessingUnit::CpuWrite(uint16_t address, uint8_t data)
 	switch (address)
 	{
 	case 0x0000: //Control
+		control.reg = data;
+		tRamAddress.nametableX = control.nametableX;
+		tRamAddress.nametableY = control.nametableY;
 		break;
 	case 0x0001: //Mask
+		mask.reg = data;
 		break;
 	case 0x0002: //Status
 		break;
@@ -130,10 +148,35 @@ void PixelProcessingUnit::CpuWrite(uint16_t address, uint8_t data)
 	case 0x0004: //OAM Data
 		break;
 	case 0x0005: //Scroll
+		if (addressLatch == 0)
+		{
+			fineX = data & 0x07;
+			tRamAddress.coarseX = data >> 3;
+			addressLatch = 1;
+		}
+		else
+		{
+			tRamAddress.fineY = data & 0x07;
+			tRamAddress.coarseY = data >> 3;
+			addressLatch = 0;
+		}
 		break;
 	case 0x0006: //PPU Address
+		if (addressLatch == 0x00)
+		{
+			tRamAddress.reg = (tRamAddress.reg & 0x00FF) | (data << 8);
+			addressLatch = 1;
+		}
+		else
+		{
+			tRamAddress.reg = (tRamAddress.reg & 0xFF00) | data;
+			vRamAddress = tRamAddress;
+			addressLatch = 0;
+		}
 		break;
 	case 0x0007: //PPU Data
+		PpuWrite(tRamAddress.reg, data);
+		tRamAddress.reg += (control.incrementMode ? 32 : 1);
 		break;
 	}
 }
@@ -153,7 +196,44 @@ uint8_t PixelProcessingUnit::PpuRead(uint16_t address, bool bReadOnly)
 	}
 	else if (address >= 0x2000 && address <= 0x3EFF)
 	{
-
+		if (m_pCartridge->mirror == Cartridge::MIRROR::VERTICAL)
+		{
+			if (address >= 0x000 && address <= 0x03FF)
+			{
+				data = m_NameTable[0][address & 0x03FF];
+			}
+			else if (address >= 0x0400 && address <= 0x07FF)
+			{
+				data = m_NameTable[1][address & 0x03FF];
+			}
+			else if (address >= 0x0800 && address <= 0x0BFF)
+			{
+				data = m_NameTable[0][address & 0x03FF];
+			}
+			else if (address >= 0x0C00 && address <= 0x0FFF)
+			{
+				data = m_NameTable[1][address & 0x03FF];
+			}
+		}
+		else if (m_pCartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
+		{
+			if (address >= 0x000 && address <= 0x03FF)
+			{
+				data = m_NameTable[0][address & 0x03FF];
+			}
+			else if (address >= 0x0400 && address <= 0x07FF)
+			{
+				data = m_NameTable[0][address & 0x03FF];
+			}
+			else if (address >= 0x0800 && address <= 0x0BFF)
+			{
+				data = m_NameTable[1][address & 0x03FF];
+			}
+			else if (address >= 0x0C00 && address <= 0x0FFF)
+			{
+				data = m_NameTable[1][address & 0x03FF];
+			}
+		}
 	}
 	else if (address >= 0x3F00 && address <= 0x3FFF)
 	{
@@ -186,7 +266,44 @@ void PixelProcessingUnit::PpuWrite(uint16_t address, uint8_t data)
 	}
 	else if (address >= 0x2000 && address <= 0x3EFF)
 	{
-
+		if (m_pCartridge->mirror == Cartridge::MIRROR::VERTICAL)
+		{
+			if (address >= 0x000 && address <= 0x03FF)
+			{
+				data = m_NameTable[0][address & 0x03FF];
+			}
+			else if (address >= 0x0400 && address <= 0x07FF)
+			{
+				data = m_NameTable[1][address & 0x03FF];
+			}
+			else if (address >= 0x0800 && address <= 0x0BFF)
+			{
+				data = m_NameTable[0][address & 0x03FF];
+			}
+			else if (address >= 0x0C00 && address <= 0x0FFF)
+			{
+				data = m_NameTable[1][address & 0x03FF];
+			}
+		}
+		else if (m_pCartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
+		{
+			if (address >= 0x000 && address <= 0x03FF)
+			{
+				data = m_NameTable[0][address & 0x03FF];
+			}
+			else if (address >= 0x0400 && address <= 0x07FF)
+			{
+				data = m_NameTable[0][address & 0x03FF];
+			}
+			else if (address >= 0x0800 && address <= 0x0BFF)
+			{
+				data = m_NameTable[1][address & 0x03FF];
+			}
+			else if (address >= 0x0C00 && address <= 0x0FFF)
+			{
+				data = m_NameTable[1][address & 0x03FF];
+			}
+		}
 	}
 	else if (address >= 0x3F00 && address <= 0x3FFF)
 	{
@@ -210,7 +327,175 @@ void PixelProcessingUnit::ConnectCartridge(const std::shared_ptr<Cartridge>& pCa
 
 void PixelProcessingUnit::Clock()
 {
-	m_Screen[(uint64_t)m_Cycle % m_ScreenWidth + (uint64_t)m_Scanline % m_ScreenHeight * m_ScreenWidth] = m_Palette[(rand() % 2) ? 0x3F : 0x30];
+	auto IncrementScrollX = [&]()
+	{
+		if (mask.renderBackground || mask.renderSprites)
+		{
+			if (vRamAddress.coarseX == 31)
+			{
+				vRamAddress.coarseX = 0;
+				vRamAddress.nametableX = ~vRamAddress.nametableX;
+			}
+			else
+			{
+				++(vRamAddress.coarseX);
+			}
+		}
+	};
+
+	auto IncrementScrollY = [&]()
+	{
+		if (mask.renderBackground || mask.renderSprites)
+		{
+			if (vRamAddress.fineY < 7)
+			{
+				++(vRamAddress.fineY);
+			}
+			else
+			{
+				vRamAddress.fineY = 0;
+				if (vRamAddress.coarseY == 29)
+				{
+					vRamAddress.coarseY = 0;
+					vRamAddress.nametableY = ~vRamAddress.nametableY;
+				}
+				else if (vRamAddress.coarseY == 31)
+				{
+					vRamAddress.coarseY = 0;
+				}
+				else
+				{
+					++(vRamAddress.coarseY);
+				}
+			}
+		}
+	};
+
+	auto TransferAddressX = [&]()
+	{
+		if (mask.renderBackground || mask.renderSprites)
+		{
+			vRamAddress.nametableX = tRamAddress.nametableX;
+			vRamAddress.coarseX = tRamAddress.coarseX;
+		}
+	};
+
+	auto TransferAddressY = [&]()
+	{
+		if (mask.renderBackground || mask.renderSprites)
+		{
+			vRamAddress.fineY = tRamAddress.fineY;
+			vRamAddress.nametableY = tRamAddress.nametableY;
+			vRamAddress.coarseY = tRamAddress.coarseY;
+		}
+	};
+
+	auto LoadBackgroundShifters = [&]()
+	{
+		bgShifterPatternLow = (bgShifterPatternLow & 0xFF00) | bgNextTileLsb;
+		bgShifterPatternHigh = (bgShifterPatternHigh & 0xFF00) | bgNextTileMsb;
+		bgShifterAttributeLow = (bgShifterAttributeLow & 0xFF00) | ((bgNextTileAttribute & 0b01) ? 0xFF : 0x00);
+		bgShifterAttributeHigh = (bgShifterAttributeHigh & 0xFF00) | ((bgNextTileAttribute & 0b10) ? 0xFF : 0x00);
+	};
+
+	auto UpdateShifters = [&]()
+	{
+		if (mask.renderBackground)
+		{
+			bgShifterPatternLow <<= 1;
+			bgShifterPatternHigh <<= 1;
+			bgShifterAttributeLow <<= 1;
+			bgShifterAttributeHigh <<= 1;
+		}
+	};
+
+	if (m_Scanline == -1 && m_Scanline < 240)
+	{
+		if (m_Cycle == 1)
+		{
+			status.verticalBlank = 0;
+		}
+
+		else if ((m_Cycle >= 2 && m_Cycle < 258) || (m_Cycle >= 321 && m_Cycle < 338))
+		{
+			UpdateShifters();
+			switch ((m_Cycle - 1) % 8)
+			{
+			case 0:
+				LoadBackgroundShifters();
+				bgNextTileId = PpuRead(0x2000 | (vRamAddress.reg & 0x0FFF));
+				break;
+			case 2:
+				bgNextTileAttribute = PpuRead(0x23C0 | (vRamAddress.nametableY << 11)
+					| (vRamAddress.nametableX << 10)
+					| ((vRamAddress.coarseY >> 2) << 3)
+					| (vRamAddress.coarseX >> 2));
+				if (vRamAddress.coarseY & 0x02)
+				{
+					bgNextTileAttribute >>= 4;
+				}
+				if (vRamAddress.coarseX & 0x02)
+				{
+					bgNextTileAttribute >>= 2;
+				}
+				bgNextTileAttribute &= 0x03;
+				break;
+			case 4:
+				bgNextTileLsb = PpuRead((control.patternBackground << 12) + ((uint16_t)bgNextTileId << 4) + vRamAddress.fineY);
+			case 6:
+				bgNextTileLsb = PpuRead((control.patternBackground << 12) + ((uint16_t)bgNextTileId << 4) + vRamAddress.fineY + 8);
+			case 7:
+				IncrementScrollX();
+				break;
+			}
+		}
+		if (m_Cycle == 256)
+		{
+			IncrementScrollY();
+		}
+
+		if (m_Cycle == 257)
+		{
+			TransferAddressX();
+		}
+
+		if (m_Scanline == -1 && m_Cycle >= 280 && m_Cycle < 305)
+		{
+			TransferAddressY();
+		}
+	}
+
+	//At scanline 240 nothing happens
+
+	if (m_Scanline == 241 && m_Cycle == 1)
+	{
+		status.verticalBlank = 1;
+		if (control.enableNmi)
+		{
+			m_Nmi = true;
+		}
+	}
+
+	uint8_t bgPixel{};
+	uint8_t bgPalette{};
+
+	if (mask.renderBackground)
+	{
+		uint16_t bitMask{ (uint16_t)(0x8000 >> fineX) };
+
+		uint8_t p0Pixel{ (bgShifterPatternLow & bitMask) > 0 };
+		uint8_t p1Pixel{ (bgShifterPatternHigh & bitMask) > 0 };
+		bgPixel = (p1Pixel << 1) | p0Pixel;
+
+		uint8_t p0Palette{ (bgShifterAttributeLow & bitMask) > 0 };
+		uint8_t p1Palette{ (bgShifterAttributeHigh & bitMask) > 0 };
+		bgPalette = (p1Palette << 1) | p0Palette;
+	}
+	unsigned int pixelIndex{ (unsigned int)((m_Cycle - 1) + m_Scanline * m_ScreenWidth) };
+	if (m_Screen.size() > pixelIndex)
+	{
+		m_Screen[pixelIndex] = GetColourFromPaletteRam(bgPalette, bgPixel);
+	}
 
 	++m_Cycle;
 	if (m_Cycle >= 341)
@@ -230,33 +515,38 @@ std::vector<SDL_Color>& PixelProcessingUnit::GetScreen()
 	return m_Screen;
 }
 
-//std::vector<SDL_Color>& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t palette)
-//{
-//	for (uint16_t tileY{}; tileY < 16; ++tileY)
-//	{
-//		for (uint16_t tileX{}; tileX < 16; ++tileX)
-//		{
-//			uint16_t offset{ static_cast<uint16_t>(tileY * 256 + tileX * 16) };
-//			for (uint16_t row{}; row < 8; ++row)
-//			{
-//				uint8_t tileLowerBit{ PpuRead(i * 0x1000 + offset + row) };
-//				uint8_t tileHigherBit{ PpuRead(i * 0x1000 + offset + row + 8) };
-//
-//				for (uint16_t column{}; column < 8; ++column)
-//				{
-//					uint8_t pixel = { static_cast<uint8_t>((tileLowerBit & 0x01) + (tileHigherBit & 0x01)) };
-//					tileLowerBit >>= 1;
-//					tileHigherBit >>= 1;
-//					SDL_Color colour = GetColourFromPaletteRam(palette, pixel);
-//					int tableX{ tileX * 8 + (7 - column) };
-//					int tableY{ tileY * 8 + row };
-//					m_ColorPatternTables[i][tableX + tableY * 16] = colour;
-//				}
-//			}
-//		}
-//	}
-//	return m_ColorPatternTables;
-//}
+std::vector<SDL_Color>& PixelProcessingUnit::GetNameTable(uint8_t i)
+{
+	return m_Nametable1;
+}
+
+std::vector<SDL_Color>& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t palette)
+{
+	for (uint16_t tileY{}; tileY < 16; ++tileY)
+	{
+		for (uint16_t tileX{}; tileX < 16; ++tileX)
+		{
+			uint16_t offset{ static_cast<uint16_t>(tileY * 256 + tileX * 16) };
+			for (uint16_t row{}; row < 8; ++row)
+			{
+				uint8_t tileLowerBit{ PpuRead(i * 0x1000 + offset + row) };
+				uint8_t tileHigherBit{ PpuRead(i * 0x1000 + offset + row + 8) };
+
+				for (uint16_t column{}; column < 8; ++column)
+				{
+					uint8_t pixel = { static_cast<uint8_t>((tileLowerBit & 0x01) + (tileHigherBit & 0x01)) };
+					tileLowerBit >>= 1;
+					tileHigherBit >>= 1;
+					SDL_Color colour = GetColourFromPaletteRam(palette, pixel);
+					int tableX{ tileX * 8 + (7 - column) };
+					int tableY{ tileY * 8 + row };
+					m_ColorPatternTables[i][tableX + tableY * 16] = colour;
+				}
+			}
+		}
+	}
+	return m_ColorPatternTables[i];
+}
 
 SDL_Color PixelProcessingUnit::GetColourFromPaletteRam(uint8_t palette, uint8_t pixel)
 {
