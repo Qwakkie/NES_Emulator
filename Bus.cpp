@@ -21,7 +21,7 @@ uint8_t Bus::CpuRead(uint16_t address, bool bReadOnly)
 {
 	(bReadOnly);
 	uint8_t data{ 0x00 };
-	if (m_pCartridge->CpuWrite(address, data))
+	if (m_pCartridge->CpuRead(address, data))
 	{
 
 	}

@@ -130,7 +130,6 @@ uint8_t PixelProcessingUnit::CpuRead(uint16_t address, bool bReadOnly)
 
 void PixelProcessingUnit::CpuWrite(uint16_t address, uint8_t data)
 {
-	(data);
 	switch (address)
 	{
 	case 0x0000: //Control
@@ -164,7 +163,7 @@ void PixelProcessingUnit::CpuWrite(uint16_t address, uint8_t data)
 	case 0x0006: //PPU Address
 		if (addressLatch == 0x00)
 		{
-			tRamAddress.reg = (tRamAddress.reg & 0x00FF) | (data << 8);
+			tRamAddress.reg = (uint16_t)((data & 0x3F) << 8) | (tRamAddress.reg & 0x00FF);
 			addressLatch = 1;
 		}
 		else
@@ -175,8 +174,8 @@ void PixelProcessingUnit::CpuWrite(uint16_t address, uint8_t data)
 		}
 		break;
 	case 0x0007: //PPU Data
-		PpuWrite(tRamAddress.reg, data);
-		tRamAddress.reg += (control.incrementMode ? 32 : 1);
+		PpuWrite(vRamAddress.reg, data);
+		vRamAddress.reg += (control.incrementMode ? 32 : 1);
 		break;
 	}
 }
@@ -196,6 +195,7 @@ uint8_t PixelProcessingUnit::PpuRead(uint16_t address, bool bReadOnly)
 	}
 	else if (address >= 0x2000 && address <= 0x3EFF)
 	{
+		address &= 0x0FFF;
 		if (m_pCartridge->mirror == Cartridge::MIRROR::VERTICAL)
 		{
 			if (address >= 0x000 && address <= 0x03FF)
@@ -246,7 +246,7 @@ uint8_t PixelProcessingUnit::PpuRead(uint16_t address, bool bReadOnly)
 		case 0x001C:
 			address &= 0x000F;
 		}
-		data = m_PaletteTable[address];
+		data = m_PaletteTable[address] & (mask.grayscale ? 0x30 : 0x3F);
 	}
 
 	return data;
@@ -260,48 +260,49 @@ void PixelProcessingUnit::PpuWrite(uint16_t address, uint8_t data)
 	{
 
 	}
-	else if (address >= 0x000 && address <= 0x1FFF)
+	else if (address >= 0x0000 && address <= 0x1FFF)
 	{
 		m_PatternTable[(address & 0x1000) >> 12][address & 0x0FFF] = data;
 	}
 	else if (address >= 0x2000 && address <= 0x3EFF)
 	{
+		address &= 0x0FFF;
 		if (m_pCartridge->mirror == Cartridge::MIRROR::VERTICAL)
 		{
 			if (address >= 0x000 && address <= 0x03FF)
 			{
-				data = m_NameTable[0][address & 0x03FF];
+				m_NameTable[0][address & 0x03FF] = data;
 			}
 			else if (address >= 0x0400 && address <= 0x07FF)
 			{
-				data = m_NameTable[1][address & 0x03FF];
+				m_NameTable[1][address & 0x03FF] = data;
 			}
 			else if (address >= 0x0800 && address <= 0x0BFF)
 			{
-				data = m_NameTable[0][address & 0x03FF];
+				m_NameTable[0][address & 0x03FF] = data;
 			}
 			else if (address >= 0x0C00 && address <= 0x0FFF)
 			{
-				data = m_NameTable[1][address & 0x03FF];
+				m_NameTable[1][address & 0x03FF] = data;
 			}
 		}
 		else if (m_pCartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
 		{
 			if (address >= 0x000 && address <= 0x03FF)
 			{
-				data = m_NameTable[0][address & 0x03FF];
+				m_NameTable[0][address & 0x03FF] = data;
 			}
 			else if (address >= 0x0400 && address <= 0x07FF)
 			{
-				data = m_NameTable[0][address & 0x03FF];
+				m_NameTable[0][address & 0x03FF] = data;
 			}
 			else if (address >= 0x0800 && address <= 0x0BFF)
 			{
-				data = m_NameTable[1][address & 0x03FF];
+				m_NameTable[1][address & 0x03FF] = data;
 			}
 			else if (address >= 0x0C00 && address <= 0x0FFF)
 			{
-				data = m_NameTable[1][address & 0x03FF];
+				m_NameTable[1][address & 0x03FF] = data;
 			}
 		}
 	}
