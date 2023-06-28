@@ -100,5 +100,7 @@ private:
 	};
 
 	std::vector<Instruction> m_Lookup{};
+
+	void PrintDebugLog(uint8_t opcode, bool);
 };
 

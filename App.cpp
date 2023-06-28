@@ -35,7 +35,7 @@ void App::Initialize()
 		std::cout << "SDL initialization failed. SDL Error: " << SDL_GetError();
 		return;
 	}
-	std::cout << "SDL initialization succeeded!";
+	std::cout << "SDL initialization succeeded!" << std::endl;
 	m_bInitialized = true;
 }
 

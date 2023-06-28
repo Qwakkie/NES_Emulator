@@ -39,7 +39,15 @@ bool Mapper_000::PpuMapRead(uint16_t address, uint32_t& mappedAddress)
 
 bool Mapper_000::PpuMapWrite(uint16_t address, uint32_t& mappedAddress)
 {
-    (address);
-    (mappedAddress);
+    if (address >= 0x0000 && address <= 0x1FFF)
+    {
+        if (m_CharacterBanks == 0)
+        {
+            // Treat as RAM
+            mappedAddress = address;
+            return true;
+        }
+    }
+
     return false;
 }

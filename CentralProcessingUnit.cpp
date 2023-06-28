@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "CentralProcessingUnit.h"
 #include "Bus.h"
+#include <iostream>
 
 #pragma warning (push)
 #pragma warning(disable: 26812)
+#define DEBUG_MODE
 
 CentralProcessingUnit::CentralProcessingUnit()
 {
@@ -39,15 +41,42 @@ uint8_t CentralProcessingUnit::Read(uint16_t address, bool bReadOnly)
 	return m_pBus->CpuRead(address, bReadOnly);
 }
 
+void CentralProcessingUnit::PrintDebugLog(uint8_t opcode, bool isPart2)
+{
+	if (!isPart2)
+	{
+		std::cout << std::hex << std::uppercase << m_ProgramCounter << ' '
+			<< (int)(Read(m_ProgramCounter + 0x0000)) << ' '
+			<< (int)(Read(m_ProgramCounter + 0x0001)) << ' '
+			<< (int)(Read(m_ProgramCounter + 0x0002)) << ' '
+			<< m_Lookup[opcode].name << ' ';
+	}
+	else
+	{
+		std::cout << "\t\t\t\t A:" << (int)m_Accumulator << ' '
+			<< "X:" << (int)m_X << ' '
+			<< "Y:" << (int)m_Y << ' '
+			<< "P:" << (int)m_StatusRegister << ' '
+			<< "SP:" << (int)m_StackPointer	<< std::endl;
+	}
+}
+
 void CentralProcessingUnit::Clock()
 {
 	if (m_Cycles == 0)
 	{
-		opcode = Read(m_ProgramCounter++);
-
+		opcode = Read(m_ProgramCounter);
+#ifdef DEBUG_MODE
+		PrintDebugLog(opcode, false);
+#endif
+		++m_ProgramCounter;
+		
 		m_Cycles = m_Lookup[opcode].cycles;
 
 		uint8_t additionalCycle1{ (this->*m_Lookup[opcode].addressMode)() };
+#ifdef DEBUG_MODE
+		PrintDebugLog(opcode, true);
+#endif
 		uint8_t additionalCycle2{ (this->*m_Lookup[opcode].operate)() };
 
 		m_Cycles += additionalCycle1 & additionalCycle2;
@@ -69,6 +98,10 @@ void CentralProcessingUnit::Reset()
 	uint16_t highByte = Read(m_AddressAbsolute + 1);
 
 	m_ProgramCounter = (highByte << 8) | lowByte;
+#ifdef DEBUG_MODE
+	m_ProgramCounter = 0xC000;
+	m_StatusRegister = 0x24;
+#endif
 
 	m_AddressRelative = 0x0000;
 	m_AddressAbsolute = 0x0000;
@@ -120,12 +153,18 @@ void CentralProcessingUnit::Nmi()
 uint8_t CentralProcessingUnit::IMP() //Implied
 {
 	m_Fetched = m_Accumulator;
+#ifdef DEBUG_MODE
+	std::cout << m_Fetched;
+#endif
 	return 0;
 }
 
 uint8_t CentralProcessingUnit::IMM() //Immediate
 {
 	m_AddressAbsolute = m_ProgramCounter++;
+#ifdef DEBUG_MODE
+	std::cout << m_AddressAbsolute;
+#endif
 	return 0;
 }
 
@@ -133,6 +172,9 @@ uint8_t CentralProcessingUnit::ZP0() //Zero Page
 {
 	m_AddressAbsolute = Read(m_ProgramCounter++);
 	m_AddressAbsolute &= 0x00FF;
+#ifdef DEBUG_MODE
+	std::cout << m_AddressAbsolute;
+#endif
 	return 0;
 }
 
@@ -140,6 +182,9 @@ uint8_t CentralProcessingUnit::ZPX() //Zero Page X
 {
 	m_AddressAbsolute = Read(m_ProgramCounter++) + m_X;
 	m_AddressAbsolute &= 0x00FF;
+#ifdef DEBUG_MODE
+	std::cout << m_AddressAbsolute;
+#endif
 	return 0;
 }
 
@@ -147,6 +192,9 @@ uint8_t CentralProcessingUnit::ZPY() //Zero Page Y
 {
 	m_AddressAbsolute = Read(m_ProgramCounter++) + m_Y;
 	m_AddressAbsolute &= 0x00FF;
+#ifdef DEBUG_MODE
+	std::cout << m_AddressAbsolute;
+#endif
 	return 0;
 }
 
@@ -159,6 +207,10 @@ uint8_t CentralProcessingUnit::REL() //Relative
 		m_AddressRelative |= 0xFF00;
 	}
 
+#ifdef DEBUG_MODE
+	std::cout << m_AddressRelative;
+#endif
+
 	return 0;
 }
 
@@ -168,6 +220,9 @@ uint8_t CentralProcessingUnit::ABS() //Absolute
 	uint16_t highByte{ Read(m_ProgramCounter++) };
 
 	m_AddressAbsolute = (highByte << 8) | lowByte;
+#ifdef DEBUG_MODE
+	std::cout << m_AddressAbsolute;
+#endif
 	return 0;
 }
 
@@ -181,8 +236,14 @@ uint8_t CentralProcessingUnit::ABX() //Absolute X
 
 	if ((m_AddressAbsolute & 0xFF00) != (highByte << 8)) //If we change page we may need another cycle
 	{
+#ifdef DEBUG_MODE
+		std::cout << m_AddressAbsolute;
+#endif
 		return 1;
 	}
+#ifdef DEBUG_MODE
+	std::cout << m_AddressAbsolute;
+#endif
 	return 0;
 }
 
@@ -196,8 +257,14 @@ uint8_t CentralProcessingUnit::ABY() //Absolute Y
 
 	if ((m_AddressAbsolute & 0xFF00) != (highByte << 8)) //If we change page we may need another cycle
 	{
+#ifdef DEBUG_MODE
+		std::cout << m_AddressAbsolute;
+#endif
 		return 1;
 	}
+#ifdef DEBUG_MODE
+	std::cout << m_AddressAbsolute;
+#endif
 	return 0;
 }
 
@@ -216,7 +283,9 @@ uint8_t CentralProcessingUnit::IND() //Indirect
 	{
 		m_AddressAbsolute = (Read(pointer + 1) << 8) | Read(pointer);
 	}
-
+#ifdef DEBUG_MODE
+	std::cout << m_AddressAbsolute;
+#endif
 	return 0;
 }
 
@@ -228,7 +297,9 @@ uint8_t CentralProcessingUnit::IZX() //Indirect Zero Page X
 	uint16_t highByte{ Read((uint16_t)(t + (uint16_t)m_X + 1) & 0x00FF) };
 
 	m_AddressAbsolute = (highByte << 8) | lowByte;
-
+#ifdef DEBUG_MODE
+	std::cout << m_AddressAbsolute;
+#endif
 	return 0;
 }
 
@@ -244,10 +315,16 @@ uint8_t CentralProcessingUnit::IZY() //Indirect Zero Page Y
 
 	if ((m_AddressAbsolute & 0xFF00) != (highByte << 8))
 	{
+#ifdef DEBUG_MODE
+		std::cout << m_AddressAbsolute;
+#endif
 		return 1;
 	}
 	else
 	{
+#ifdef DEBUG_MODE
+		std::cout << m_AddressAbsolute;
+#endif
 		return 0;
 	}
 }
@@ -282,7 +359,7 @@ uint8_t CentralProcessingUnit::ADC() //Addition
 	SetFlag(C, temp > 255);
 	SetFlag(Z, (temp & 0x00FF) == 0);
 	SetFlag(N, temp & 0x80);
-	SetFlag(V, (((uint16_t)m_Accumulator ^ (uint16_t)m_Fetched) & ((uint16_t)m_Accumulator ^ (uint16_t)temp)) & 0x0080);
+	SetFlag(V, (~((uint16_t)m_Accumulator ^ (uint16_t)m_Fetched) & ((uint16_t)m_Accumulator ^ (uint16_t)temp)) & 0x0080);
 	m_Accumulator = temp & 0x00FF;
 	return 1;
 }
@@ -292,7 +369,7 @@ uint8_t CentralProcessingUnit::AND() //Bitwise AND
 	Fetch();
 	m_Accumulator &= m_Fetched;
 	SetFlag(Z, m_Accumulator == 0x00);
-	SetFlag(N, m_Accumulator == 0x80);
+	SetFlag(N, m_Accumulator & 0x80);
 	return 1;
 }
 
@@ -370,8 +447,8 @@ uint8_t CentralProcessingUnit::BIT() //Test bits in memory with accumulator
 	Fetch();
 	uint16_t temp = m_Accumulator & m_Fetched;
 	SetFlag(Z, !(temp & 0x00FF));
-	SetFlag(N, temp & (1 << 7));
-	SetFlag(V, temp & (1 << 6));
+	SetFlag(N, m_Fetched & (1 << 7));
+	SetFlag(V, m_Fetched & (1 << 6));
 	return 0;
 }
 
@@ -433,16 +510,16 @@ uint8_t CentralProcessingUnit::BRK() //Force an interrupt
 	Write(m_StackAddress + m_StackPointer--, m_ProgramCounter & 0x00FF);
 
 	SetFlag(B, 1);
-	Write(m_StackAddress + m_StackPointer--, m_StatusRegister);
+	Write(m_StackAddress + m_StackPointer--, m_StatusRegister | B);
 	SetFlag(B, 0);
 
 	m_ProgramCounter = (uint16_t)Read(0xFFFE) | ((uint16_t)Read(0xFFFF) << 8);
 	return 0;
 }
 
-uint8_t CentralProcessingUnit::BVC() //Branch if overflow
+uint8_t CentralProcessingUnit::BVC() //Branch if overflow clear
 {
-	if (GetFlag(V))
+	if (!GetFlag(V))
 	{
 		m_Cycles++;
 		m_AddressAbsolute = m_ProgramCounter + m_AddressRelative;
@@ -457,9 +534,9 @@ uint8_t CentralProcessingUnit::BVC() //Branch if overflow
 	return 0;
 }
 
-uint8_t CentralProcessingUnit::BVS() //Branch if no overflow
+uint8_t CentralProcessingUnit::BVS() //Branch if overflow set
 {
-	if (!GetFlag(V))
+	if (GetFlag(V))
 	{
 		m_Cycles++;
 		m_AddressAbsolute = m_ProgramCounter + m_AddressRelative;
@@ -691,7 +768,7 @@ uint8_t CentralProcessingUnit::SBC() //Subtract
 	SetFlag(C, temp > 255);
 	SetFlag(Z, (temp & 0x00FF) == 0);
 	SetFlag(N, temp & 0x80);
-	SetFlag(V, (((uint16_t)m_Accumulator ^ (uint16_t)value) & ((uint16_t)m_Accumulator ^ (uint16_t)temp)) & 0x0080);
+	SetFlag(V, ((temp ^ (uint16_t)value) & ((uint16_t)m_Accumulator ^ temp)) & 0x0080);
 	m_Accumulator = temp & 0x00FF;
 	return 1;
 }
@@ -816,8 +893,8 @@ uint8_t CentralProcessingUnit::PHA() //Put A on stack
 uint8_t CentralProcessingUnit::PHP() //Push Status on stack (B flag is set before)
 {
 	Write(m_StackAddress + m_StackPointer--, m_StatusRegister | B | U);
-	SetFlag(B, 0);
-	SetFlag(U, 0);
+	//SetFlag(B, 0);
+	//SetFlag(U, 0);
 	return 0;
 }
 
