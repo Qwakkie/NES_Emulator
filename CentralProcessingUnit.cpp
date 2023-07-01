@@ -2,6 +2,7 @@
 #include "CentralProcessingUnit.h"
 #include "Bus.h"
 #include <iostream>
+#include <iomanip>
 
 #pragma warning (push)
 #pragma warning(disable: 26812)
@@ -46,18 +47,18 @@ void CentralProcessingUnit::PrintDebugLog(uint8_t opcode, bool isPart2)
 	if (!isPart2)
 	{
 		std::cout << std::hex << std::uppercase << m_ProgramCounter << ' '
-			<< (int)(Read(m_ProgramCounter + 0x0000)) << ' '
-			<< (int)(Read(m_ProgramCounter + 0x0001)) << ' '
-			<< (int)(Read(m_ProgramCounter + 0x0002)) << ' '
-			<< m_Lookup[opcode].name << ' ';
+		<< std::setw(2) << std::setfill('0') << (int)(Read(m_ProgramCounter + 0x0000)) << ' '
+		<< std::setw(2) << std::setfill('0') << (int)(Read(m_ProgramCounter + 0x0001)) << ' '
+		<< std::setw(2) << std::setfill('0') << (int)(Read(m_ProgramCounter + 0x0002)) << ' '
+		<< m_Lookup[opcode].name << ' ';
 	}
 	else
 	{
-		std::cout << "\t\t\t\t A:" << (int)m_Accumulator << ' '
-			<< "X:" << (int)m_X << ' '
-			<< "Y:" << (int)m_Y << ' '
-			<< "P:" << (int)m_StatusRegister << ' '
-			<< "SP:" << (int)m_StackPointer	<< std::endl;
+		std::cout << "\t\t\t\t A:" << std::setw(2) << std::setfill('0') << (int)m_Accumulator << ' '
+			<< "X:" << std::setw(2) << std::setfill('0') << (int)m_X << ' '
+			<< "Y:" << std::setw(2) << std::setfill('0') << (int)m_Y << ' '
+			<< "P:" << std::setw(2) << std::setfill('0') << (int)m_StatusRegister << ' '
+			<< "SP:" << std::setw(2) << std::setfill('0') << (int)m_StackPointer	<< std::endl;
 	}
 }
 
@@ -378,7 +379,7 @@ uint8_t CentralProcessingUnit::ASL() //Arithmetic Shift Left one bit
 	Fetch();
 	uint16_t temp = (uint16_t)m_Fetched << 1;
 	SetFlag(C, (temp & 0xFF00) > 0);
-	SetFlag(Z, (temp & 0xFF00) == 0x00);
+	SetFlag(Z, (temp & 0x00FF) == 0x00);
 	SetFlag(N, temp & 0x80);
 	if (m_Lookup[opcode].addressMode == &CentralProcessingUnit::IMP)
 	{
@@ -741,12 +742,16 @@ uint8_t CentralProcessingUnit::ROR() //Rotate right one bit
 
 uint8_t CentralProcessingUnit::RTI() //Return from interrupt
 {
-	m_StatusRegister = Read(m_StackAddress + ++m_StackPointer);
-	m_StatusRegister &= ~B;
-	m_StatusRegister &= ~U;
+	++m_StackPointer;
+	m_StatusRegister = Read(m_StackAddress + m_StackPointer);
+	//m_StatusRegister &= ~B;
+	//m_StatusRegister &= ~U;
+	SetFlag(U, true);
 
-	m_ProgramCounter = (uint16_t)Read(m_StackAddress + ++m_StackPointer);
-	m_ProgramCounter |= (uint16_t)Read(m_StackAddress + ++m_StackPointer) << 8;
+	++m_StackPointer;
+	m_ProgramCounter = (uint16_t)Read(m_StackAddress + m_StackPointer);
+	++m_StackPointer;
+	m_ProgramCounter |= (uint16_t)Read(m_StackAddress + m_StackPointer) << 8;
 	return 0;
 }
 
@@ -886,14 +891,15 @@ uint8_t CentralProcessingUnit::ORA() //OR memory with A
 
 uint8_t CentralProcessingUnit::PHA() //Put A on stack
 {
-	Write(m_StackAddress + m_StackPointer--, m_Accumulator);
+	Write(m_StackAddress + m_StackPointer, m_Accumulator);
+	--m_StackPointer;
 	return 0;
 }
 
 uint8_t CentralProcessingUnit::PHP() //Push Status on stack (B flag is set before)
 {
 	Write(m_StackAddress + m_StackPointer--, m_StatusRegister | B | U);
-	//SetFlag(B, 0);
+	SetFlag(B, 0);
 	//SetFlag(U, 0);
 	return 0;
 }
@@ -909,6 +915,7 @@ uint8_t CentralProcessingUnit::PLP() //Pull Status from stack
 {
 	m_StatusRegister = Read(m_StackAddress + ++m_StackPointer);
 	SetFlag(U, 1);
+	SetFlag(B, 0);
 	return 0;	
 }
 uint8_t CentralProcessingUnit::ROL() //Rotate left
