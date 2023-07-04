@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <fstream>
 
 class Bus;
 
@@ -101,6 +102,7 @@ private:
 
 	std::vector<Instruction> m_Lookup{};
 
+	std::ofstream debugLog;
 	void PrintDebugLog(uint8_t opcode, bool);
 };
 

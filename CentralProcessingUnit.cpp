@@ -44,9 +44,13 @@ uint8_t CentralProcessingUnit::Read(uint16_t address, bool bReadOnly)
 
 void CentralProcessingUnit::PrintDebugLog(uint8_t opcode, bool isPart2)
 {
+	if (!debugLog.is_open())
+	{
+		debugLog.open("Resources/mynestestlog.txt");
+	}
 	if (!isPart2)
 	{
-		std::cout << std::hex << std::uppercase << m_ProgramCounter << ' '
+		debugLog<< std::hex << std::uppercase << m_ProgramCounter << ' '
 		<< std::setw(2) << std::setfill('0') << (int)(Read(m_ProgramCounter + 0x0000)) << ' '
 		<< std::setw(2) << std::setfill('0') << (int)(Read(m_ProgramCounter + 0x0001)) << ' '
 		<< std::setw(2) << std::setfill('0') << (int)(Read(m_ProgramCounter + 0x0002)) << ' '
@@ -54,7 +58,7 @@ void CentralProcessingUnit::PrintDebugLog(uint8_t opcode, bool isPart2)
 	}
 	else
 	{
-		std::cout << "\t\t\t\t A:" << std::setw(2) << std::setfill('0') << (int)m_Accumulator << ' '
+		debugLog << "\t\t\t\t A:" << std::setw(2) << std::setfill('0') << (int)m_Accumulator << ' '
 			<< "X:" << std::setw(2) << std::setfill('0') << (int)m_X << ' '
 			<< "Y:" << std::setw(2) << std::setfill('0') << (int)m_Y << ' '
 			<< "P:" << std::setw(2) << std::setfill('0') << (int)m_StatusRegister << ' '
@@ -155,7 +159,7 @@ uint8_t CentralProcessingUnit::IMP() //Implied
 {
 	m_Fetched = m_Accumulator;
 #ifdef DEBUG_MODE
-	std::cout << m_Fetched;
+	debugLog << "#$" << m_Accumulator;
 #endif
 	return 0;
 }
@@ -164,7 +168,7 @@ uint8_t CentralProcessingUnit::IMM() //Immediate
 {
 	m_AddressAbsolute = m_ProgramCounter++;
 #ifdef DEBUG_MODE
-	std::cout << m_AddressAbsolute;
+	debugLog << m_AddressAbsolute;
 #endif
 	return 0;
 }
@@ -174,7 +178,7 @@ uint8_t CentralProcessingUnit::ZP0() //Zero Page
 	m_AddressAbsolute = Read(m_ProgramCounter++);
 	m_AddressAbsolute &= 0x00FF;
 #ifdef DEBUG_MODE
-	std::cout << m_AddressAbsolute;
+	debugLog << "#$" << m_AddressAbsolute;
 #endif
 	return 0;
 }
@@ -184,7 +188,7 @@ uint8_t CentralProcessingUnit::ZPX() //Zero Page X
 	m_AddressAbsolute = Read(m_ProgramCounter++) + m_X;
 	m_AddressAbsolute &= 0x00FF;
 #ifdef DEBUG_MODE
-	std::cout << m_AddressAbsolute;
+	debugLog << m_AddressAbsolute;
 #endif
 	return 0;
 }
@@ -194,7 +198,7 @@ uint8_t CentralProcessingUnit::ZPY() //Zero Page Y
 	m_AddressAbsolute = Read(m_ProgramCounter++) + m_Y;
 	m_AddressAbsolute &= 0x00FF;
 #ifdef DEBUG_MODE
-	std::cout << m_AddressAbsolute;
+	debugLog << m_AddressAbsolute;
 #endif
 	return 0;
 }
@@ -209,7 +213,7 @@ uint8_t CentralProcessingUnit::REL() //Relative
 	}
 
 #ifdef DEBUG_MODE
-	std::cout << m_AddressRelative;
+	debugLog << m_AddressRelative;
 #endif
 
 	return 0;
@@ -222,7 +226,7 @@ uint8_t CentralProcessingUnit::ABS() //Absolute
 
 	m_AddressAbsolute = (highByte << 8) | lowByte;
 #ifdef DEBUG_MODE
-	std::cout << m_AddressAbsolute;
+	debugLog << '$' << m_AddressAbsolute;
 #endif
 	return 0;
 }
@@ -238,12 +242,12 @@ uint8_t CentralProcessingUnit::ABX() //Absolute X
 	if ((m_AddressAbsolute & 0xFF00) != (highByte << 8)) //If we change page we may need another cycle
 	{
 #ifdef DEBUG_MODE
-		std::cout << m_AddressAbsolute;
+		debugLog << m_AddressAbsolute;
 #endif
 		return 1;
 	}
 #ifdef DEBUG_MODE
-	std::cout << m_AddressAbsolute;
+	debugLog << m_AddressAbsolute;
 #endif
 	return 0;
 }
@@ -259,12 +263,12 @@ uint8_t CentralProcessingUnit::ABY() //Absolute Y
 	if ((m_AddressAbsolute & 0xFF00) != (highByte << 8)) //If we change page we may need another cycle
 	{
 #ifdef DEBUG_MODE
-		std::cout << m_AddressAbsolute;
+		debugLog << m_AddressAbsolute;
 #endif
 		return 1;
 	}
 #ifdef DEBUG_MODE
-	std::cout << m_AddressAbsolute;
+	debugLog << m_AddressAbsolute;
 #endif
 	return 0;
 }
@@ -285,7 +289,7 @@ uint8_t CentralProcessingUnit::IND() //Indirect
 		m_AddressAbsolute = (Read(pointer + 1) << 8) | Read(pointer);
 	}
 #ifdef DEBUG_MODE
-	std::cout << m_AddressAbsolute;
+	debugLog << m_AddressAbsolute;
 #endif
 	return 0;
 }
@@ -299,7 +303,7 @@ uint8_t CentralProcessingUnit::IZX() //Indirect Zero Page X
 
 	m_AddressAbsolute = (highByte << 8) | lowByte;
 #ifdef DEBUG_MODE
-	std::cout << m_AddressAbsolute;
+	debugLog << m_AddressAbsolute;
 #endif
 	return 0;
 }
@@ -317,14 +321,14 @@ uint8_t CentralProcessingUnit::IZY() //Indirect Zero Page Y
 	if ((m_AddressAbsolute & 0xFF00) != (highByte << 8))
 	{
 #ifdef DEBUG_MODE
-		std::cout << m_AddressAbsolute;
+		debugLog << m_AddressAbsolute;
 #endif
 		return 1;
 	}
 	else
 	{
 #ifdef DEBUG_MODE
-		std::cout << m_AddressAbsolute;
+		debugLog << m_AddressAbsolute;
 #endif
 		return 0;
 	}
