@@ -6,7 +6,7 @@
 
 #pragma warning (push)
 #pragma warning(disable: 26812)
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 CentralProcessingUnit::CentralProcessingUnit()
 {
@@ -39,7 +39,7 @@ void CentralProcessingUnit::Write(uint16_t address, uint8_t data)
 
 uint8_t CentralProcessingUnit::Read(uint16_t address, bool bReadOnly)
 {
-	return m_pBus->CpuRead(address, bReadOnly);
+	return m_pBus->CpuRead(address, false);
 }
 
 void CentralProcessingUnit::PrintDebugLog(uint8_t opcode, bool isPart2)

@@ -326,7 +326,7 @@ void PixelProcessingUnit::ConnectCartridge(const std::shared_ptr<Cartridge>& pCa
 	m_pCartridge = pCartridge;
 }
 
-void PixelProcessingUnit::Clock()
+void PixelProcessingUnit::Clock()	
 {
 	auto IncrementScrollX = [&]()
 	{
@@ -410,14 +410,19 @@ void PixelProcessingUnit::Clock()
 		}
 	};
 
-	if (m_Scanline == -1 && m_Scanline < 240)
+	if (m_Scanline >= -1 && m_Scanline < 240)
 	{
-		if (m_Cycle == 1)
+		if (m_Scanline == 0 && m_Cycle == 0)
+		{
+			// "Odd Frame" cycle skip
+			m_Cycle = 1;
+		}
+		if (m_Scanline == -1 && m_Cycle == 1)
 		{
 			status.verticalBlank = 0;
 		}
 
-		else if ((m_Cycle >= 2 && m_Cycle < 258) || (m_Cycle >= 321 && m_Cycle < 338))
+		if ((m_Cycle >= 2 && m_Cycle < 258) || (m_Cycle >= 321 && m_Cycle < 338))
 		{
 			UpdateShifters();
 			switch ((m_Cycle - 1) % 8)
@@ -457,7 +462,13 @@ void PixelProcessingUnit::Clock()
 
 		if (m_Cycle == 257)
 		{
+			LoadBackgroundShifters();
 			TransferAddressX();
+		}
+
+		if (m_Cycle == 338 || m_Cycle == 340)
+		{
+			bgNextTileId = PpuRead(0x2000 | (vRamAddress.reg & 0x0FFF));
 		}
 
 		if (m_Scanline == -1 && m_Cycle >= 280 && m_Cycle < 305)
@@ -492,7 +503,7 @@ void PixelProcessingUnit::Clock()
 		uint8_t p1Palette{ (bgShifterAttributeHigh & bitMask) > 0 };
 		bgPalette = (p1Palette << 1) | p0Palette;
 	}
-	unsigned int pixelIndex{ (unsigned int)((m_Cycle - 1) + m_Scanline * m_ScreenWidth) };
+	unsigned int pixelIndex{ (unsigned int)((m_Cycle - 1) + m_Scanline * 128) };
 	if (m_Screen.size() > pixelIndex)
 	{
 		m_Screen[pixelIndex] = GetColourFromPaletteRam(bgPalette, bgPixel);
@@ -523,6 +534,7 @@ std::vector<SDL_Color>& PixelProcessingUnit::GetNameTable(uint8_t i)
 
 std::vector<SDL_Color>& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t palette)
 {
+	int maxIndex{};
 	for (uint16_t tileY{}; tileY < 16; ++tileY)
 	{
 		for (uint16_t tileX{}; tileX < 16; ++tileX)
@@ -541,7 +553,12 @@ std::vector<SDL_Color>& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t 
 					SDL_Color colour = GetColourFromPaletteRam(palette, pixel);
 					int tableX{ tileX * 8 + (7 - column) };
 					int tableY{ tileY * 8 + row };
-					m_ColorPatternTables[i][tableX + tableY * 16] = colour;
+					int index{ tableX + tableY * 128 };
+					m_ColorPatternTables[i][tableX + tableY * 128] = colour;
+					if (index > maxIndex)
+					{
+						maxIndex = index;
+					}
 				}
 			}
 		}
