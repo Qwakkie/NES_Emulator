@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Renderer.h"
 #include "App.h"
+#include "Sprite.h"
 #include <iostream>
 
 Renderer::Renderer(SDL_Window* pWindow)
@@ -26,9 +27,14 @@ void Renderer::SetClearColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 	m_ClearColor = { r, g, b, a };
 }
 
-void Renderer::DrawFrame(SDL_Color* pixelArray)const
+void Renderer::DrawFrame()const
 {
-    SDL_Color* pixelPointer = pixelArray;
+    SDL_RenderCopy(m_pRenderer, m_pRenderTexture, NULL, NULL);
+}
+
+void Renderer::DrawSprite(const Sprite& sprite) const
+{
+    SDL_Color* pixelPointer = sprite.GetPixels();
     SDL_Color* destination;
     int row, col;
     void* pixels;
@@ -37,17 +43,17 @@ void Renderer::DrawFrame(SDL_Color* pixelArray)const
     if (SDL_LockTexture(m_pRenderTexture, NULL, &pixels, &pitch) < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock texture: %s\n", SDL_GetError());
     }
-    for (row = 0; row < App::GetAppSettings().WindowHeight; ++row) {
+
+    for (row = sprite.m_X; row < sprite.m_Width; ++row) {
 #pragma warning (push)
 #pragma warning (disable:26451)
         destination = (SDL_Color*)((Uint8*)pixels + row * pitch);
 #pragma warning(pop)
-        for (col = 0; col < App::GetAppSettings().WindowWidth; ++col) {
+        for (col = sprite.m_Y; col < sprite.m_Height; ++col) {
             *destination++ = *pixelPointer++;
         }
     }
     SDL_UnlockTexture(m_pRenderTexture);
-    SDL_RenderCopy(m_pRenderer, m_pRenderTexture, NULL, NULL);
 }
 
 void Renderer::RenderPresent()

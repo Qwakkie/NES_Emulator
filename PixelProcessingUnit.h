@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include "Sprite.h"
 
 class Cartridge;
 
@@ -23,7 +24,7 @@ public:
 
 	std::vector<SDL_Color>& GetScreen();
 	std::vector<SDL_Color>& GetNameTable(uint8_t i);
-	std::vector<SDL_Color>& GetPatternTable(uint8_t i, uint8_t palette);
+	const Sprite& GetPatternTable(uint8_t i, uint8_t palette);
 
 	bool m_FrameComplete{ false };
 	bool m_Nmi{ false };
@@ -46,7 +47,7 @@ private:
 	std::vector<SDL_Color> m_Screen;
 	std::vector<SDL_Color> m_Nametable1;
 	std::vector<SDL_Color> m_Nametable2;
-	std::vector<std::vector<SDL_Color>> m_ColorPatternTables;
+	std::vector<Sprite> m_ColorPatternTables;
 
 	uint16_t m_Scanline{};
 	uint16_t m_Cycle{};

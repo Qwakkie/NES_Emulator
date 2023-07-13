@@ -9,12 +9,8 @@ PixelProcessingUnit::PixelProcessingUnit()
 {
 	m_Screen.resize(m_ScreenSize);
 
-	m_ColorPatternTables.push_back(std::vector<SDL_Color>{});
-	m_ColorPatternTables.push_back(std::vector<SDL_Color>{});
-	for (std::vector<SDL_Color>& v : m_ColorPatternTables)
-	{
-		v.resize(128*128);
-	}
+	m_ColorPatternTables.push_back(Sprite(128, 128));
+	m_ColorPatternTables.push_back(Sprite(128, 128));
 
 	m_Nametable1.resize(256 * 240);
 	m_Nametable2.resize(256 * 240);
@@ -532,7 +528,7 @@ std::vector<SDL_Color>& PixelProcessingUnit::GetNameTable(uint8_t i)
 	return m_Nametable1;
 }
 
-std::vector<SDL_Color>& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t palette)
+const Sprite& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t palette)
 {
 	int maxIndex{};
 	for (uint16_t tileY{}; tileY < 16; ++tileY)
@@ -554,7 +550,7 @@ std::vector<SDL_Color>& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t 
 					int tableX{ tileX * 8 + (7 - column) };
 					int tableY{ tileY * 8 + row };
 					int index{ tableX + tableY * 128 };
-					m_ColorPatternTables[i][tableX + tableY * 128] = colour;
+					m_ColorPatternTables[i].SetPixel(tableX, tableY, colour);
 					if (index > maxIndex)
 					{
 						maxIndex = index;
