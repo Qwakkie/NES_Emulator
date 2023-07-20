@@ -81,9 +81,9 @@ void App::Run()
 				break;
 			}
 		}
-		m_Nes.Clock();
 		m_pRenderer->DrawSprite(m_Nes.m_Ppu.GetPatternTable(0, 0));
-		m_pRenderer->DrawFrame();
+		m_pRenderer->DrawSprite(m_Nes.m_Ppu.GetPatternTable(1, 0));
+		m_pRenderer->DrawSprite(m_Nes.m_Ppu.GetScreen());
 		m_pRenderer->RenderPresent();
 		std::chrono::duration<double> duration{ std::chrono::system_clock::now() - m_LastFrameTime };
 		m_ElapsedTime = (float)duration.count();

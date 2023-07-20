@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
     FileSelector fileSelector{};
     //bool result = fileSelector.OpenFile();
 
-	App::GetAppSettings() = AppSettings{224, 256};
+	App::GetAppSettings() = AppSettings{768, 640};
 	App app{};
 	app.Run();
     return 0;

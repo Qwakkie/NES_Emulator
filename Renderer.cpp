@@ -36,24 +36,27 @@ void Renderer::DrawSprite(const Sprite& sprite) const
 {
     SDL_Color* pixelPointer = sprite.GetPixels();
     SDL_Color* destination;
-    int row, col;
     void* pixels;
     int pitch;
+    SDL_Texture* pTexture{ SDL_CreateTexture(m_pRenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, sprite.m_Width, sprite.m_Height) };
 
-    if (SDL_LockTexture(m_pRenderTexture, NULL, &pixels, &pitch) < 0) {
+    if (SDL_LockTexture(pTexture, NULL, &pixels, &pitch) < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock texture: %s\n", SDL_GetError());
     }
 
-    for (row = sprite.m_X; row < sprite.m_Width; ++row) {
+    for (int row{}; row < sprite.m_Width; ++row) {
 #pragma warning (push)
 #pragma warning (disable:26451)
         destination = (SDL_Color*)((Uint8*)pixels + row * pitch);
 #pragma warning(pop)
-        for (col = sprite.m_Y; col < sprite.m_Height; ++col) {
+        for (int col{}; col < sprite.m_Height; ++col) {
             *destination++ = *pixelPointer++;
         }
     }
-    SDL_UnlockTexture(m_pRenderTexture);
+    SDL_Rect destRect{sprite.m_X, sprite.m_Y, sprite.m_Width * sprite.m_Scale, sprite.m_Height * sprite.m_Scale};
+    SDL_UnlockTexture(pTexture);
+    SDL_RenderCopy(m_pRenderer, pTexture, NULL, &destRect);
+    SDL_DestroyTexture(pTexture);
 }
 
 void Renderer::RenderPresent()

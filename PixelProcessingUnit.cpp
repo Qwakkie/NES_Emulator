@@ -6,11 +6,13 @@ PixelProcessingUnit::PixelProcessingUnit()
 	:m_NameTable{}
 	, m_Palette{}
 	, m_PaletteTable{}
+	,m_Screen{m_ScreenWidth, m_ScreenHeight}
 {
-	m_Screen.resize(m_ScreenSize);
-
+	m_Screen.m_Scale = 2;
 	m_ColorPatternTables.push_back(Sprite(128, 128));
+	m_ColorPatternTables[0].m_X = 256 * 2;
 	m_ColorPatternTables.push_back(Sprite(128, 128));
+	m_ColorPatternTables[1].m_X = 256 * 2 + 128;
 
 	m_Nametable1.resize(256 * 240);
 	m_Nametable2.resize(256 * 240);
@@ -335,7 +337,7 @@ void PixelProcessingUnit::Clock()
 			}
 			else
 			{
-				++(vRamAddress.coarseX);
+				vRamAddress.coarseX++;
 			}
 		}
 	};
@@ -346,7 +348,7 @@ void PixelProcessingUnit::Clock()
 		{
 			if (vRamAddress.fineY < 7)
 			{
-				++(vRamAddress.fineY);
+				vRamAddress.fineY++;
 			}
 			else
 			{
@@ -362,7 +364,7 @@ void PixelProcessingUnit::Clock()
 				}
 				else
 				{
-					++(vRamAddress.coarseY);
+					vRamAddress.coarseY++;
 				}
 			}
 		}
@@ -444,8 +446,10 @@ void PixelProcessingUnit::Clock()
 				break;
 			case 4:
 				bgNextTileLsb = PpuRead((control.patternBackground << 12) + ((uint16_t)bgNextTileId << 4) + vRamAddress.fineY);
+				break;
 			case 6:
-				bgNextTileLsb = PpuRead((control.patternBackground << 12) + ((uint16_t)bgNextTileId << 4) + vRamAddress.fineY + 8);
+				bgNextTileMsb = PpuRead((control.patternBackground << 12) + ((uint16_t)bgNextTileId << 4) + vRamAddress.fineY + 8);
+				break;
 			case 7:
 				IncrementScrollX();
 				break;
@@ -499,11 +503,7 @@ void PixelProcessingUnit::Clock()
 		uint8_t p1Palette{ (bgShifterAttributeHigh & bitMask) > 0 };
 		bgPalette = (p1Palette << 1) | p0Palette;
 	}
-	unsigned int pixelIndex{ (unsigned int)((m_Cycle - 1) + m_Scanline * 128) };
-	if (m_Screen.size() > pixelIndex)
-	{
-		m_Screen[pixelIndex] = GetColourFromPaletteRam(bgPalette, bgPixel);
-	}
+	m_Screen.SetPixel(m_Cycle - 1, m_Scanline, GetColourFromPaletteRam(bgPalette, bgPixel));
 
 	++m_Cycle;
 	if (m_Cycle >= 341)
@@ -518,7 +518,7 @@ void PixelProcessingUnit::Clock()
 	}
 }
 
-std::vector<SDL_Color>& PixelProcessingUnit::GetScreen()
+const Sprite& PixelProcessingUnit::GetScreen()
 {
 	return m_Screen;
 }
@@ -530,7 +530,6 @@ std::vector<SDL_Color>& PixelProcessingUnit::GetNameTable(uint8_t i)
 
 const Sprite& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t palette)
 {
-	int maxIndex{};
 	for (uint16_t tileY{}; tileY < 16; ++tileY)
 	{
 		for (uint16_t tileX{}; tileX < 16; ++tileX)
@@ -549,12 +548,7 @@ const Sprite& PixelProcessingUnit::GetPatternTable(uint8_t i, uint8_t palette)
 					SDL_Color colour = GetColourFromPaletteRam(palette, pixel);
 					int tableX{ tileX * 8 + (7 - column) };
 					int tableY{ tileY * 8 + row };
-					int index{ tableX + tableY * 128 };
 					m_ColorPatternTables[i].SetPixel(tableX, tableY, colour);
-					if (index > maxIndex)
-					{
-						maxIndex = index;
-					}
 				}
 			}
 		}

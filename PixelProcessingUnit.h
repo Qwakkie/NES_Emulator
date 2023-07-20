@@ -22,7 +22,7 @@ public:
 	void ConnectCartridge(const std::shared_ptr<Cartridge>& pCartridge);
 	void Clock();
 
-	std::vector<SDL_Color>& GetScreen();
+	const Sprite& GetScreen();
 	std::vector<SDL_Color>& GetNameTable(uint8_t i);
 	const Sprite& GetPatternTable(uint8_t i, uint8_t palette);
 
@@ -42,9 +42,8 @@ private:
 	
 	const int m_ScreenWidth{ 256 };
 	const int m_ScreenHeight{ 240 };
-	const int m_ScreenSize{ m_ScreenWidth * m_ScreenHeight };
 
-	std::vector<SDL_Color> m_Screen;
+	Sprite m_Screen;
 	std::vector<SDL_Color> m_Nametable1;
 	std::vector<SDL_Color> m_Nametable2;
 	std::vector<Sprite> m_ColorPatternTables;
